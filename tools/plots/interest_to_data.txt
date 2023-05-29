@@ -1,0 +1,5 @@
+This plot will help you visualize the efficiency of the network over time. 
+A higher Interest-to-Data ratio may indicate congestion or inefficiencies in the network, 
+as more Interest packets are being sent for each Data packet received. 
+A lower ratio means the network is functioning more efficiently, with fewer 
+Interest packets needed for each Data packet.
