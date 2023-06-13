@@ -32,6 +32,7 @@ kiwisolver==1.4.4
 lark==1.1.5
 MarkupSafe==2.1.2
 matplotlib==3.6.3
+memory-profiler==0.61.0
 motor==3.1.1
 multidict==6.0.3
 multimethod==1.9.1
@@ -44,6 +45,7 @@ phik==0.12.3
 Pillow==9.4.0
 platformdirs==2.5.2
 promise==2.3
+psutil==5.9.5
 pycairo==1.21.0
 pycodestyle==2.10.0
 pycryptodomex==3.16.0
