@@ -21,14 +21,16 @@ class PrefixContentSizes:
                 DATA_DIR, f'{MONGO_DB_NAME}-prefix-content-sizes.csv'))
             LOGGER.info('Plotting...')
             fig, axs = plt.subplots(1, 2, figsize=(12, 7))
-            axs[0].bar(df.columns, df.mean(), color=['#1f77b4', '#ff7f0e'], alpha=0.7)
+            axs[0].bar(df.columns, df.mean(), color=[
+                       '#1f77b4', '#ff7f0e'], alpha=0.7)
             axs[0].set_xlabel('Term')
             axs[0].set_ylabel('Average content size (bytes)')
             axs[0].set_title('Average content size per term')
 
             # Separate plots for distributions
             if df['nlsr'].nunique() > 1:  # Check if 'nlsr' has more than one unique value
-                sns.histplot(df['nlsr'].dropna(), kde=True, ax=axs[1])  # Plot histogram with kernel density estimate for 'nlsr'
+                # Plot histogram with kernel density estimate for 'nlsr'
+                sns.histplot(df['nlsr'].dropna(), kde=True, ax=axs[1])
                 axs[1].set_title('Content size distribution for nlsr')
                 axs[1].set_xlabel('Content Size')
 
@@ -40,7 +42,7 @@ class PrefixContentSizes:
 
             plt.tight_layout()
             plt.show()
-            
+
             return
 
         search_terms = ['fileserver', 'nlsr']
@@ -77,14 +79,17 @@ class PrefixContentSizes:
 
         LOGGER.info('Plotting...')
         fig, axs = plt.subplots(1, 2, figsize=(12, 14))
-        axs[0].bar(df.columns, df.mean(), color=['#1f77b4', '#ff7f0e'], alpha=0.7)
+        axs[0].bar(df.columns, df.mean(), color=[
+                   '#1f77b4', '#ff7f0e'], alpha=0.7)
         axs[0].set_xlabel('Term')
         axs[0].set_ylabel('Average content size (bytes)')
         axs[0].set_title('Average content size per term')
 
         for column in df.columns:
-            if df[column].nunique() > 1:  # Only plot distributions for columns with more than one unique value
-                sns.histplot(df[column].dropna(), kde=True, ax=axs[1])  # Plot histogram with kernel density estimate
+            # Only plot distributions for columns with more than one unique value
+            if df[column].nunique() > 1:
+                # Plot histogram with kernel density estimate
+                sns.histplot(df[column].dropna(), kde=True, ax=axs[1])
                 axs[1].set_title(f'Content size distribution for {column}')
 
         if self.save_fig:
@@ -95,7 +100,6 @@ class PrefixContentSizes:
 
         plt.tight_layout()
         plt.show()
-
 
 
 if __name__ == '__main__':

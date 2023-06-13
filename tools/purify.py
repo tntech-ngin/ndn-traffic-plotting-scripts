@@ -54,25 +54,34 @@ class PurifyJSON:
         with open(new_file_path, "w") as json_file:
             json.dump(new_data, json_file, indent=2)
 
-    '''
-    Assumes first, last line contain [ and ]
-    '''
-
     def process_json_file(self):
         new_file_path = os.path.join(os.path.dirname(
             self.file_path), "new_" + os.path.basename(self.file_path))
 
-        with open(self.file_path) as json_file, open(new_file_path, "a") as new_json_file:
+        with open(self.file_path, errors='replace') as json_file, open(new_file_path, "a") as new_json_file:
             open_curly_count = 0
             json_obj = ''
+            decode_errors = 0
+            general_exceptions = 0
 
             progress_bar = tqdm(desc="Processing packets", unit=" packet")
 
             for line in json_file:
-                open_curly_count += line.count('{')
-                open_curly_count -= line.count('}')
+                line = line.strip()
 
-                json_obj += line.strip()
+                r_open_curly = '{' in line
+                r_close_curly = '}' in line
+
+                if r_open_curly:
+                    open_curly_index = line.find('{')
+                    if len(line) - 1 == open_curly_index:
+                        open_curly_count += 1
+
+                if r_close_curly:
+                    if len(line) in [1, 2]:
+                        open_curly_count -= 1
+
+                json_obj += line
 
                 # If first or last line, continue
                 if json_obj == '[' or json_obj == ']':
@@ -90,19 +99,21 @@ class PurifyJSON:
                             self._remove_dots_from_key(data)))
                         new_json_file.write('\n')
                     except json.decoder.JSONDecodeError as e:
-                        LOGGER.error(
-                            f"Error: {e}. JSON object: {json_obj}")
+                        LOGGER.error(f'JSONDecodeError: {e}')
+                        continue
                     except Exception as e:
-                        LOGGER.error(
-                            f"Error: {e}. JSON object: {json_obj}")
+                        LOGGER.error(f'Exception: {e}')
+                        continue
 
                     json_obj = ''
-                    progress_bar.update(1)
+                    progress_bar.update()
 
             progress_bar.close()
 
         json_file.close()
         new_json_file.close()
+
+        LOGGER.info('Done.')
 
 
 if __name__ == '__main__':
