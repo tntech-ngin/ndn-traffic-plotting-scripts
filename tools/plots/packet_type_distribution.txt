@@ -1,3 +1,0 @@
-A high percentage of Interest or NACK packets may indicate potential 
-congestion or inefficiencies in the network, while a more balanced 
-distribution could suggest a well-functioning network
