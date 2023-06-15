@@ -9,3 +9,4 @@ data/*
 !data/.gitkeep
 .vscode
 *.txt
+!requirements.txt
