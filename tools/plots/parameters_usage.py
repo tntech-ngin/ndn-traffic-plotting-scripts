@@ -3,8 +3,8 @@ import argparse
 import os
 import seaborn as sns
 import matplotlib.pyplot as plt
-from settings import DB, LOGGER, MONGO_COLLECTION_INTEREST, MONGO_COLLECTION_DATA, \
-    MONGO_COLLECTION_LP_PACKET_INTEREST, MONGO_COLLECTION_LP_PACKET_DATA, DATA_DIR, MONGO_DB_NAME
+from settings import DB, LOGGER, MONGO_COLLECTION_INTEREST, \
+    DATA_DIR, MONGO_DB_NAME
 
 
 class ParametersUsage:
@@ -16,27 +16,23 @@ class ParametersUsage:
     async def plot(self):
         LOGGER.info('Getting the packets...')
         i_p = []
-
         pipeline = {
-            '_source.layers.ndn.ndn_mustbefresh': 1,
-            '_source.layers.ndn.ndn_canbeprefix': 1,
-            '_source.layers.ndn.ndn_interestlifetime': 1,
-            '_source.layers.ndn.ndn_interestsignatureinfo': 1,
-            '_source.layers.ndn.ndn_hoplimit': 1,
-            '_id': 0}
+            'ndn_mustbefresh': 1,
+            'ndn_canbeprefix': 1,
+            'ndn_interestlifetime': 1,
+            'ndn_interestsignatureinfo': 1,
+            'ndn_hoplimit': 1,
+            '_id': 0
+        }
 
         for collection in self.collections.values():
             async for document in self.db[collection].find({}, pipeline):
-                if collection == self.collections['INTEREST']:
-                    ndn = document['_source']['layers']['ndn']
-                else:
-                    ndn = document['_source']['layers']['ndn'][1]
                 i_p.append({
-                    'mustbefresh': ndn.get('ndn_mustbefresh', None),
-                    'canbeprefix': ndn.get('ndn_canbeprefix', None),
-                    'interestlifetime': ndn.get('ndn_interestlifetime', None),
-                    'interestsignatureinfo': ndn.get('ndn_interestsignatureinfo', None),
-                    'hoplimit': ndn.get('ndn_hoplimit', None)
+                    'mustbefresh': document.get('ndn_mustbefresh', None),
+                    'canbeprefix': document.get('ndn_canbeprefix', None),
+                    'interestlifetime': document.get('ndn_interestlifetime', None),
+                    'interestsignatureinfo': document.get('ndn_interestsignatureinfo', None),
+                    'hoplimit': document.get('ndn_hoplimit', None)
                 })
 
         # Calculate the percentage of each parameter
@@ -83,7 +79,7 @@ class ParametersUsage:
             fig.savefig(os.path.join(
                 DATA_DIR, f'{MONGO_DB_NAME}-parameters_usage.pdf'), bbox_inches='tight')
             LOGGER.info(
-                f'Popular prefixes saved to {os.path.join(DATA_DIR, f"{MONGO_DB_NAME}-parameters_usage.pdf")}')
+                f'Parameters usage saved to {os.path.join(DATA_DIR, f"{MONGO_DB_NAME}-parameters_usage.pdf")}')
 
         plt.show()
 
@@ -96,8 +92,7 @@ if __name__ == '__main__':
                         help='Save figure to file (default: False).')
     args = parser.parse_args()
 
-    plot = ParametersUsage(DB, {'INTEREST': MONGO_COLLECTION_INTEREST,
-                                'LP_PACKET_INTEREST': MONGO_COLLECTION_LP_PACKET_INTEREST})
+    plot = ParametersUsage(DB, {'INTEREST': MONGO_COLLECTION_INTEREST})
 
     plot.save_fig = args.save_fig
     asyncio.run(plot.plot())

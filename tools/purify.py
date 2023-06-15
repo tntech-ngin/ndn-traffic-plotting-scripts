@@ -10,24 +10,14 @@ import os
 import argparse
 import json
 from tqdm import tqdm
-from settings import LOGGER
+from settings import LOGGER, NDNPACKETTYPES
 
 
 class PurifyJSON:
+    MISSING = '<MISSING>'
+
     def __init__(self, file_path):
         self.file_path = file_path
-
-    def _value_resolver(self, pairs):
-        dct = {}
-        for key, value in pairs:
-            if key in dct:
-                if type(dct[key]) is list:
-                    dct[key].append(value)
-                else:
-                    dct[key] = [dct[key], value]
-            else:
-                dct[key] = value
-        return dct
 
     def _remove_dots_from_key(self, data):
         new_data = {}
@@ -61,8 +51,6 @@ class PurifyJSON:
         with open(self.file_path, errors='replace') as json_file, open(new_file_path, "a") as new_json_file:
             open_curly_count = 0
             json_obj = ''
-            decode_errors = 0
-            general_exceptions = 0
 
             progress_bar = tqdm(desc="Processing packets", unit=" packet")
 
@@ -92,23 +80,83 @@ class PurifyJSON:
                 if open_curly_count == 0 and json_obj != '':
                     json_obj = json_obj.strip(',')
 
-                    try:
-                        data = json.loads(
-                            json_obj, object_pairs_hook=self._value_resolver)
-                        new_json_file.write(json.dumps(
-                            self._remove_dots_from_key(data)))
-                        new_json_file.write('\n')
-                    except json.decoder.JSONDecodeError as e:
-                        LOGGER.error(f'JSONDecodeError: {e}')
+                    # try:
+                    data = json.loads(json_obj)
+                    dot_removed = self._remove_dots_from_key(data)
+
+                    layers = dot_removed['_source'].get('layers', {})
+
+                    # Check if 'ndn_name' is present in 'layers'
+                    if 'ndn_name' not in layers:
+                        json_obj = ''
                         continue
-                    except Exception as e:
-                        LOGGER.error(f'Exception: {e}')
-                        continue
+
+                    new_data = {
+                        'frame_time_epoch': layers['frame_time_epoch'][0],
+                    }
+
+                    is_data_packet = 'ndn_data' in layers
+                    is_interest_packet = 'ndn_interest' in layers
+                    is_nack_packet = 'ndn_nack' in layers
+
+                    if is_nack_packet:
+                        new_data.update({
+                            'ndn_type': NDNPACKETTYPES.NACK.value,
+                            'ndn_nackreason': layers['ndn_nackreason'][0]
+                        })
+
+                    elif is_data_packet:
+                        new_data.update({
+                            'ndn_type': NDNPACKETTYPES.DATA.value,
+                            'ndn_name': layers['ndn_name'][0],
+                            'ndn_genericnamecomponent': layers['ndn_genericnamecomponent'],
+                        })
+
+                        if 'ndn_content' in layers and layers['ndn_content'][0] != PurifyJSON.MISSING:
+                            new_data['ndn_content'] = layers['ndn_content'][0]
+
+                        if len(layers['ndn_name']) == 2:
+                            new_data['ndn_signaturename'] = layers['ndn_name'][1]
+                            for item in new_data['ndn_signaturename'].split('/'):
+                                if item in new_data['ndn_genericnamecomponent']:
+                                    new_data['ndn_genericnamecomponent'].remove(
+                                        item)
+
+                        if 'ndn_signaturetype' in layers:
+                            new_data['ndn_signaturetype'] = layers['ndn_signaturetype'][0]
+
+                    elif is_interest_packet:
+                        new_data.update({
+                            'ndn_type': NDNPACKETTYPES.INTEREST.value,
+                            'ndn_name': layers['ndn_name'][0]
+                        })
+                        for key in ['ndn_mustbefresh', 'ndn_interestname', 'ndn_canbeprefix', 'ndn_interestlifetime',
+                                    'ndn_hoplimit', 'ndn_genericnamecomponent', 'ndn_signaturetype']:
+                            if key in layers:
+                                new_data[key] = layers[key] if key in [
+                                    'ndn_genericnamecomponent', 'ndn_applicationparameters'] else layers[key][0]
+
+                        if len(layers['ndn_name']) == 2:
+                            new_data['ndn_signaturename'] = layers['ndn_name'][1]
+                            for item in new_data['ndn_signaturename'].split('/'):
+                                if item in new_data['ndn_genericnamecomponent']:
+                                    new_data['ndn_genericnamecomponent'].remove(
+                                        item)
+
+                        if 'ndn_applicationparameters' in layers and layers['ndn_applicationparameters'][0] != PurifyJSON.MISSING:
+                            new_data['ndn_applicationparameters'] = layers['ndn_applicationparameters'][0]
+
+                    new_json_file.write(json.dumps(new_data))
+                    new_json_file.write('\n')
+                    # except json.decoder.JSONDecodeError as e:
+                    #     LOGGER.error(f'JSONDecodeError: {e}')
+                    #     continue
+                    # except Exception as e:
+                    #     LOGGER.error(f'Exception: {e}')
+                    #     continue
 
                     json_obj = ''
                     progress_bar.update()
-
-            progress_bar.close()
 
         json_file.close()
         new_json_file.close()

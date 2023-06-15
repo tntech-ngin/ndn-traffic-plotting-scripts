@@ -1,6 +1,7 @@
 import os
 import sys
 import logging
+from enum import Enum
 from envparse import env
 from motor.motor_asyncio import AsyncIOMotorClient
 
@@ -20,14 +21,8 @@ MONGO_DB_NAME = env.str('MONGO_DB_NAME', default='packet-view')
 MONGO_COLLECTION_INTEREST = env.str(
     'MONGO_COLLECTION_INTEREST', default='pv-interest')
 MONGO_COLLECTION_DATA = env.str('MONGO_COLLECTION_DATA', default='pv-data')
-MONGO_COLLECTION_LP_PACKET_FRAG = env.str(
-    'MONGO_COLLECTION_LP_PACKET_FRAG', default='pv-lp-frag')
-MONGO_COLLECTION_LP_PACKET_NACK = env.str(
-    'MONGO_COLLECTION_LP_PACKET_NACK', default='pv-lp-nack')
-MONGO_COLLECTION_LP_PACKET_INTEREST = env.str(
-    'MONGO_COLLECTION_LP_PACKET_INTEREST', default='pv-lp-interest')
-MONGO_COLLECTION_LP_PACKET_DATA = env.str(
-    'MONGO_COLLECTION_LP_PACKET_DATA', default='pv-lp-data')
+MONGO_COLLECTION_NACK = env.str(
+    'MONGO_COLLECTION_NACK', default='pv-nack')
 
 # DB
 DB_CLIENT = AsyncIOMotorClient(MONGO_HOST)
@@ -42,3 +37,9 @@ _console_handler.setFormatter(logging.Formatter(
     datefmt='%Y-%m-%d %H:%M:%S'
 ))
 LOGGER.addHandler(_console_handler)
+
+# NDN
+class NDNPACKETTYPES(Enum):
+    INTEREST = 'I'
+    DATA = 'D'
+    NACK = 'N'

@@ -4,8 +4,7 @@ import json
 import argparse
 from tqdm import tqdm
 from settings import DB, MONGO_COLLECTION_INTEREST, MONGO_COLLECTION_DATA, \
-    MONGO_COLLECTION_LP_PACKET_FRAG, MONGO_COLLECTION_LP_PACKET_NACK, \
-    MONGO_COLLECTION_LP_PACKET_INTEREST, MONGO_COLLECTION_LP_PACKET_DATA, LOGGER
+    MONGO_COLLECTION_NACK, NDNPACKETTYPES, LOGGER
 
 
 class Indexer:
@@ -15,10 +14,7 @@ class Indexer:
         self.bulk_data = {
             MONGO_COLLECTION_INTEREST: [],
             MONGO_COLLECTION_DATA: [],
-            MONGO_COLLECTION_LP_PACKET_FRAG: [],
-            MONGO_COLLECTION_LP_PACKET_NACK: [],
-            MONGO_COLLECTION_LP_PACKET_INTEREST: [],
-            MONGO_COLLECTION_LP_PACKET_DATA: [],
+            MONGO_COLLECTION_NACK: []
         }
 
     async def _index_packet(self, type, packet):
@@ -38,27 +34,13 @@ class Indexer:
         progress_bar = tqdm(desc='Indexing packets', unit=' packet')
 
         for packet in self.packets_generator(file_path):
-            try:
-                ndn_layer = packet['_source']['layers']['ndn']
-            except KeyError:
-                # LOGGER.error(f'Error: The packet {packet} does not contain NDN layer')
-                continue
-            if 'ndn_interest' in ndn_layer:
+            packet_type = packet['ndn_type']
+            if packet_type == NDNPACKETTYPES.INTEREST.value:
                 await self._index_packet(MONGO_COLLECTION_INTEREST, packet)
-            elif 'ndn_data' in ndn_layer:
+            elif packet_type == NDNPACKETTYPES.DATA.value:
                 await self._index_packet(MONGO_COLLECTION_DATA, packet)
-            # elif 'ndn_lp_packet' in ndn_layer:
-            #     await self._index_packet(MONGO_COLLECTION_LP_PACKET_FRAG, packet)
-            elif type(ndn_layer) is list:
-                if 'ndn_nack' in ndn_layer[0]:
-                    await self._index_packet(
-                        MONGO_COLLECTION_LP_PACKET_NACK, packet)
-                elif 'ndn_interest' in ndn_layer[1]:
-                    await self._index_packet(
-                        MONGO_COLLECTION_LP_PACKET_INTEREST, packet)
-                elif 'ndn_data' in ndn_layer[1]:
-                    await self._index_packet(
-                        MONGO_COLLECTION_LP_PACKET_DATA, packet)
+            elif packet_type == NDNPACKETTYPES.NACK.value:
+                await self._index_packet(MONGO_COLLECTION_NACK, packet)
 
             progress_bar.update()
 

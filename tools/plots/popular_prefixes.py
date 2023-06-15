@@ -6,7 +6,7 @@ from matplotlib.ticker import LogLocator
 from matplotlib.lines import Line2D
 from collections import Counter
 from settings import DB, LOGGER, MONGO_COLLECTION_INTEREST, MONGO_COLLECTION_DATA, \
-    MONGO_COLLECTION_LP_PACKET_INTEREST, MONGO_COLLECTION_LP_PACKET_DATA, DATA_DIR, MONGO_DB_NAME
+    DATA_DIR, MONGO_DB_NAME
 
 
 class PopularPrefixes:
@@ -20,28 +20,19 @@ class PopularPrefixes:
         prefix_counters_interests = {}
         prefix_counters_data = {}
 
-        pipeline_non_lp = {
-            '_source.layers.ndn.ndn_name_tree.ndn_genericnamecomponent': 1, '_id': 0}
-        pipeline_lp = {
-            '_source.layers.ndn.ndn_name_tree.ndn_genericnamecomponent': 1, '_id': 0}
-
         for collection in self.collections.values():
-            pipeline = pipeline_lp if collection in [
-                self.collections['LP_PACKET_INTEREST'], self.collections['LP_PACKET_DATA']] else pipeline_non_lp
-
-            async for document in self.db[collection].find({}, pipeline):
-                name_components = document['_source']['layers']['ndn'][1]['ndn_name_tree']['ndn_genericnamecomponent'] if collection in [
-                    self.collections['LP_PACKET_INTEREST'], self.collections['LP_PACKET_DATA']] else document['_source']['layers']['ndn']['ndn_name_tree']['ndn_genericnamecomponent']
+            async for document in self.db[collection].find({}, {'_id': 0, 'ndn_genericnamecomponent': 1}):
+                name_components = document['ndn_genericnamecomponent']
 
                 for i in range(1, min(len(name_components), 5) + 1):  # Limit to first 5 levels
                     prefix = '/' + '/'.join(name_components[:i])
                     level = i
 
-                    if collection in [self.collections['INTEREST'], self.collections['LP_PACKET_INTEREST']]:
+                    if collection == self.collections['INTEREST']:
                         if level not in prefix_counters_interests:
                             prefix_counters_interests[level] = Counter()
                         prefix_counters_interests[level][prefix] += 1
-                    elif collection in [self.collections['DATA'], self.collections['LP_PACKET_DATA']]:
+                    elif collection == self.collections['DATA']:
                         if level not in prefix_counters_data:
                             prefix_counters_data[level] = Counter()
                         prefix_counters_data[level][prefix] += 1
@@ -138,14 +129,14 @@ class PopularPrefixes:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        description='Plot NDN packet statistics.', prog='python -m tools.plots.popular-prefixes')
+        description='Plot NDN packet statistics.', prog='python -m tools.plots.popular_prefixes')
 
     parser.add_argument('--save-fig', default=False, action=argparse.BooleanOptionalAction,
                         help='Save figure to file (default: False).')
     args = parser.parse_args()
 
-    plot = PopularPrefixes(DB, {'INTEREST': MONGO_COLLECTION_INTEREST, 'DATA': MONGO_COLLECTION_DATA,
-                                'LP_PACKET_INTEREST': MONGO_COLLECTION_LP_PACKET_INTEREST, 'LP_PACKET_DATA': MONGO_COLLECTION_LP_PACKET_DATA})
+    plot = PopularPrefixes(
+        DB, {'INTEREST': MONGO_COLLECTION_INTEREST, 'DATA': MONGO_COLLECTION_DATA})
 
     plot.save_fig = args.save_fig
     asyncio.run(plot.plot())
