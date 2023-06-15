@@ -98,7 +98,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Plot packets histogram', prog='python -m tools.plots.components_hexbin')
 
-    parser.add_argument('--duration', default=10, type=int,
+    parser.add_argument('--duration', default=60, type=int,
                         help=f'Duration in minutes to group packets (default: 60)')
     parser.add_argument('--save-fig', default=False, action=argparse.BooleanOptionalAction,
                         help='Save figure to file (default: False).')
