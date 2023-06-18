@@ -1,8 +1,12 @@
 '''
     Removes dots from JSON file keys exported from Wireshark 
     NDN dissector. MongoDB does not like dots in keys.
-    Usage: python purify.py <path_to_json_file>
-    Example: python purify.py file.json
+
+    Usage: 
+    python purify.py <path_to_json_file>
+
+    Example: 
+    python -m tools.purify file.json
     The new file will be saved as new_file.json
 '''
 

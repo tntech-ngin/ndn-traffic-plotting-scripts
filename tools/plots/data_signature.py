@@ -25,7 +25,7 @@ class DataSignature:
 
         counts = {}
         async for doc in DB[MONGO_COLLECTION_DATA].aggregate([{'$project': {'_id': 0, 'ndn_signaturetype': 1}}]):
-            sig_type = doc['ndn_signaturetype']
+            sig_type = doc.get('ndn_signaturetype', None)
             if sig_type is not None:
                 sig_type = int(sig_type)
             counts[sig_m[sig_type]] = counts.get(sig_m[sig_type], 0) + 1

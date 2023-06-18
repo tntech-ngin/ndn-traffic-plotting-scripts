@@ -23,6 +23,8 @@ MONGO_COLLECTION_INTEREST = env.str(
 MONGO_COLLECTION_DATA = env.str('MONGO_COLLECTION_DATA', default='pv-data')
 MONGO_COLLECTION_NACK = env.str(
     'MONGO_COLLECTION_NACK', default='pv-nack')
+MONGO_COLLECTION_FRAGMENT = env.str(
+    'MONGO_COLLECTION_FRAGMENT', default='pv-fragment')
 
 # DB
 DB_CLIENT = AsyncIOMotorClient(MONGO_HOST)

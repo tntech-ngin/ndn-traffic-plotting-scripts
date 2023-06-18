@@ -4,7 +4,7 @@ import json
 import argparse
 from tqdm import tqdm
 from settings import DB, MONGO_COLLECTION_INTEREST, MONGO_COLLECTION_DATA, \
-    MONGO_COLLECTION_NACK, NDNPACKETTYPES, LOGGER
+    MONGO_COLLECTION_NACK, MONGO_COLLECTION_FRAGMENT, LOGGER
 
 
 class Indexer:
@@ -14,7 +14,8 @@ class Indexer:
         self.bulk_data = {
             MONGO_COLLECTION_INTEREST: [],
             MONGO_COLLECTION_DATA: [],
-            MONGO_COLLECTION_NACK: []
+            MONGO_COLLECTION_NACK: [],
+            MONGO_COLLECTION_FRAGMENT: [],
         }
 
     async def _index_packet(self, type, packet):
@@ -34,17 +35,19 @@ class Indexer:
         progress_bar = tqdm(desc='Indexing packets', unit=' packet')
 
         for packet in self.packets_generator(file_path):
-            packet_type = packet['ndn_type']
-            if packet_type == NDNPACKETTYPES.INTEREST.value:
+            packet_type = packet['t']
+            if 'I' in packet_type:
                 await self._index_packet(MONGO_COLLECTION_INTEREST, packet)
-            elif packet_type == NDNPACKETTYPES.DATA.value:
+            elif 'D' in packet_type:
                 await self._index_packet(MONGO_COLLECTION_DATA, packet)
-            elif packet_type == NDNPACKETTYPES.NACK.value:
+            elif 'N' in packet_type:
                 await self._index_packet(MONGO_COLLECTION_NACK, packet)
+            else:
+                await self._index_packet(MONGO_COLLECTION_FRAGMENT, packet)
 
             progress_bar.update()
 
-        # Perform reamining bulk inserts if any document is left
+        # Perform remaining bulk inserts if any document is left
         for collection, data in self.bulk_data.items():
             if data:
                 await self.db[collection].insert_many(data)

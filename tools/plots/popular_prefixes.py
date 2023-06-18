@@ -3,8 +3,8 @@ import asyncio
 import argparse
 import matplotlib.pyplot as plt
 from matplotlib.ticker import LogLocator
-from matplotlib.lines import Line2D
 from collections import Counter
+from ndn.encoding import Name
 from settings import DB, LOGGER, MONGO_COLLECTION_INTEREST, MONGO_COLLECTION_DATA, \
     DATA_DIR, MONGO_DB_NAME
 
@@ -21,8 +21,8 @@ class PopularPrefixes:
         prefix_counters_data = {}
 
         for collection in self.collections.values():
-            async for document in self.db[collection].find({}, {'_id': 0, 'ndn_genericnamecomponent': 1}):
-                name_components = document['ndn_genericnamecomponent']
+            async for document in self.db[collection].find({}, {'_id': 0, 'name': 1}):
+                name_components = document['name'].split('/')[1:]
 
                 for i in range(1, min(len(name_components), 5) + 1):  # Limit to first 5 levels
                     prefix = '/' + '/'.join(name_components[:i])
@@ -37,94 +37,86 @@ class PopularPrefixes:
                             prefix_counters_data[level] = Counter()
                         prefix_counters_data[level][prefix] += 1
 
-        # Get top 5 prefixes by count for each level for interests
+        # Get top 3 prefixes by count for each level for interests
         LOGGER.info('Getting the top prefixes...')
         top_prefixes_interests_per_level = {
-            level: counter.most_common(5) for level, counter in prefix_counters_interests.items()
+            level: counter.most_common(3) for level, counter in prefix_counters_interests.items()
         }
         top_prefixes_data_per_level = {
-            level: counter.most_common(5) for level, counter in prefix_counters_data.items()
+            level: counter.most_common(3) for level, counter in prefix_counters_data.items()
         }
 
         LOGGER.info('Plotting...')
-        fig, ax = plt.subplots(1, 2, figsize=(12, 7))
-        fig.suptitle('Popularity of prefixes', fontsize=16)
-        fig.subplots_adjust(top=0.5)
+        fig, ax = plt.subplots(2, 1, figsize=(12, 8))
 
-        ax[0].set_xlabel('Interests', fontsize=14)
-        ax[1].set_xlabel('Data', fontsize=14)
+        ax[0].set_ylabel('Interests', fontsize=12)
+        ax[1].set_ylabel('Data', fontsize=12, labelpad=40)
 
-        ax[0].xaxis.set_label_coords(0.5, -0.05)
-        ax[1].xaxis.set_label_coords(0.5, -0.05)
+        ax[0].yaxis.set_label_coords(-0.09, 0.5)
+        ax[1].yaxis.set_label_coords(-0.09, 0.5)
 
-        ax[0].set_ylabel('Count')
-        ax[1].set_ylabel('Count')
-        ax[0].set_yscale('log')
-        ax[1].set_yscale('log')
+        # ax[0].set_xlabel('Count')
+        ax[1].set_xlabel('Count')
+        ax[0].set_xscale('log')
+        ax[1].set_xscale('log')
 
-        # Set the y-axis range and ticks for both plots
-        min_count = min(
-            [min(counter.values())
-             for counter in list(prefix_counters_interests.values())]
-            + [min(counter.values())
-               for counter in list(prefix_counters_data.values())]
-        )
-        max_count = max(
-            [max(counter.values())
-             for counter in list(prefix_counters_interests.values())]
-            + [max(counter.values())
-               for counter in list(prefix_counters_data.values())]
-        )
-
-        ax[0].set_ylim(min_count, max_count)
-        ax[1].set_ylim(min_count, max_count)
         # Set the y-axis to have more frequent ticks
         ax[0].yaxis.set_major_locator(LogLocator(numticks=10))
         ax[1].yaxis.set_major_locator(LogLocator(numticks=10))
 
-        bar_width = 0.15
+        bar_width = 1
         colors = ['#66b3ff', '#99ff99', '#ff9999', '#ffcc99', '#c2c2f0']
 
         # Plot top 5 prefixes with counts only up to the 5th level
-        for level in range(1, 6):
+        for level in range(5, 0, -1):
             interests_prefixes = top_prefixes_interests_per_level.get(
                 level, [])
             data_prefixes = top_prefixes_data_per_level.get(level, [])
-            offset = (level - 1) * 5
+            offset = (5 - level) * 40
             color = colors[level - 1]
 
             for i, (prefix, count) in enumerate(interests_prefixes):
-                bar = ax[0].bar(i + offset, count, width=bar_width,
-                                color=color, label=f'Level {level}' if i == 0 else None)
-                ax[0].text(i + offset, count + 0.2 * count, prefix, ha='center', va='bottom',
-                           rotation='vertical', fontsize=8, fontdict={'style': 'italic'})
+                bar = ax[0].barh(i * 12 + offset, count, height=bar_width,
+                                 color=color, label=f'Level {level}' if i == 0 else None)
+
+                prefix = Name.to_str(Name.from_str(prefix))
+                ax[0].text(count + 0.2 * count, i * 12 + offset, prefix, ha='left', va='center',
+                           rotation=0, fontsize=8, fontdict={'style': 'italic'})
 
             for i, (prefix, count) in enumerate(data_prefixes):
-                bar = ax[1].bar(i + offset, count, width=bar_width,
-                                color=color, label=f'Level {level}' if i == 0 else None)
-                ax[1].text(i + offset, count + 0.2 * count, prefix, ha='center', va='bottom',
-                           rotation='vertical', fontsize=8, fontdict={'style': 'italic'})
+                bar = ax[1].barh(i * 12 + offset, count, height=bar_width,
+                                 color=color, label=f'Level {level}' if i == 0 else None)
 
-        # Create custom legend using Line2D
-        custom_lines = [Line2D([0], [0], color=colors[i], lw=4)
-                        for i in range(5)]
-        legend_labels = [f'Level {i+1}' for i in range(5)]
+                prefix = Name.to_str(Name.from_str(prefix))
+                ax[1].text(count + 0.2 * count, i * 12 + offset, prefix, ha='left', va='center',
+                           rotation=0, fontsize=8, fontdict={'style': 'italic'})
 
-        # Place the legend outside the plots in the upper left
-        fig.legend(custom_lines, legend_labels, loc='upper right')
+        ax[0].set_xlim(1e3, 1e7)
+        ax[1].set_xlim(1e3, 1e7)
 
-        # Remove x-axis labels
-        ax[0].set_xticklabels([])
-        ax[1].set_xticklabels([])
+        ax[0].set_yticks([172, 132, 92, 52, 12])
+        ax[1].set_yticks([172, 132, 92, 52, 12])
+
+        ax[0].set_ylim(-10)
+        ax[1].set_ylim(-10)
+
+        ax[0].spines['right'].set_visible(False)
+        ax[0].spines['top'].set_visible(False)
+        ax[1].spines['right'].set_visible(False)
+        ax[1].spines['top'].set_visible(False)
+
+        ax[0].set_yticklabels(
+            ['Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level 5'])
+        ax[1].set_yticklabels(
+            ['Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level 5'])
 
         if self.save_fig:
             fig.savefig(os.path.join(
                 DATA_DIR, f'{MONGO_DB_NAME}-popular_prefixes.pdf'), bbox_inches='tight')
             LOGGER.info(
                 f'Popular prefixes saved to {os.path.join(DATA_DIR, f"{MONGO_DB_NAME}-popular_prefixes.pdf")}')
-
-        plt.show()
-        plt.close(fig)
+        else:
+            plt.show()
 
 
 if __name__ == '__main__':

@@ -18,9 +18,8 @@ class ComponentsHexbin:
         LOGGER.info('Getting the packets...')
         i_d = []
         d_d = []
-
         for collection in self.collections.values():
-            async for document in self.db[collection].find({}, 'name'):
+            async for document in self.db[collection].find({}, {'name': 1, '_id': 0}):
                 n = document['name']
                 num_c = len(n.split('/')) - 1
                 try:
@@ -58,8 +57,8 @@ class ComponentsHexbin:
                         bbox_inches='tight')
             LOGGER.info(
                 f'Hexbin saved to {os.path.join(DATA_DIR, f"{MONGO_DB_NAME}-hexbin.pdf")}')
-
-        plt.show()
+        else:
+            plt.show()
 
 
 if __name__ == '__main__':

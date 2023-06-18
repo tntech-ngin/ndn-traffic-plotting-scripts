@@ -18,10 +18,6 @@ class PacketTypeDistribution:
         for collection in self.collections.values():
             r[collection] = await self.db[collection].count_documents({})
 
-        print(f'INTERESTS: {r[MONGO_COLLECTION_INTEREST]}')
-        print(f'DATA: {r[MONGO_COLLECTION_DATA]}')
-        print(f'NACKS: {r[MONGO_COLLECTION_NACK]}')
-
         # plot pie chart for packet type distribution
         fig, ax = plt.subplots(figsize=(12, 7))
         fig.suptitle('Packet type distribution', fontsize=16)
