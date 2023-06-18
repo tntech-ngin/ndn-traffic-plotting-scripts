@@ -28,7 +28,7 @@ class PacketsHistogramThroughput:
             pipeline = [
                 {'$project': {
                     '_id': 0, 'ts': 1, 'size2': 1}},
-                {'$sort': {'ts': 1}},
+                {'$sort': {'ts': 1}}
             ]
             r = self.db[collection].aggregate(pipeline)
             async for doc in r:
@@ -89,8 +89,8 @@ class PacketsHistogramThroughput:
         throughput = [t * 8 / (duration * 60) / 1e6 for t in throughput]
 
         LOGGER.info('Plotting...')
-        fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2,
-                                       figsize=(12, 8))
+        fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1,
+                                       figsize=(8, 8))
         plt.subplots_adjust(left=0.1, right=0.9)
 
         # First plot
@@ -111,27 +111,25 @@ class PacketsHistogramThroughput:
         ax1.yaxis.set_minor_locator(ticker.MultipleLocator(10000))
         ax1.yaxis.set_major_formatter(ticker.FuncFormatter(
             lambda x, pos: int(x / 1000) if x > 0 else 0))
-        ax1.set_xlabel('Timestamp [UTC]')
+        # ax1.set_xlabel('Timestamp [UTC]')
         ax1.set_ylabel(f'Packets per minute [x10^3]', fontsize=10)
         ax1.legend()
 
         # Second plot
+        ax2.plot(np.arange(num_durations),
+                 throughput, color='r', linestyle='-')
         ax2.xaxis.set_major_locator(
             ticker.MultipleLocator(min(30/duration, num_durations)))
         ax2.xaxis.set_minor_locator(
             ticker.MultipleLocator(min(15/duration, num_durations)))
         ax2.xaxis.set_major_formatter(ticker.FuncFormatter(
             lambda x, pos: duration_labels[int(x)] if x < len(duration_labels) else ''))
-
         ax2.set_xlabel('Timestamp [UTC]')
         ax2.set_ylabel('Throughput [Mbps]', fontsize=10)
         ax2.yaxis.set_major_locator(ticker.MultipleLocator(30))
         ax2.yaxis.set_minor_locator(ticker.MultipleLocator(15))
         ax2.set_ylim(bottom=0)
-        ax2.yaxis.tick_right()
-        ax2.yaxis.set_label_position('right')
-        ax2.plot(np.arange(num_durations), throughput,
-                 color='r', linestyle='-')
+
         plt.tight_layout()
 
         if self.save_fig:
