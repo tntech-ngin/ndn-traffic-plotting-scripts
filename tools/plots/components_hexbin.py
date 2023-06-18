@@ -1,6 +1,7 @@
 import os
 import asyncio
 import argparse
+from matplotlib import colors
 from ndn.encoding import Name
 import matplotlib.pyplot as plt
 import numpy as np
@@ -35,18 +36,30 @@ class ComponentsHexbin:
 
         LOGGER.info('Plotting...')
         fig, ax = plt.subplots(figsize=(12, 7))
+        ax.tick_params(axis='both', which='major', labelsize=9)
         hb1 = ax.hexbin(*zip(*i_d), gridsize=25, cmap='Blues',
                         alpha=0.9, mincnt=25, edgecolors='blue')
         hb2 = ax.hexbin(*zip(*d_d), gridsize=25, cmap='Oranges',
                         alpha=0.9, mincnt=25, edgecolors='orange')
 
-        cb1 = fig.colorbar(hb1)
-        cb1.set_label('Interest Frequency', fontsize=12)
-        cb2 = fig.colorbar(hb2)
-        cb2.set_label('Data Frequency', fontsize=12)
+        max_count = max(hb1.get_array().max(), hb2.get_array().max())
+        min_count = min(hb1.get_array().min(), hb2.get_array().min())
+        norm = colors.Normalize(vmin=min_count, vmax=max_count)
 
-        ax.set_xlabel('Number of Components', fontsize=12)
-        ax.set_ylabel('Name Length (Bytes)', fontsize=12)
+        hb1 = ax.hexbin(*zip(*i_d), gridsize=25, cmap='Blues', norm=norm,
+                        alpha=0.9, mincnt=25, edgecolors='blue')
+        hb2 = ax.hexbin(*zip(*d_d), gridsize=25, cmap='Oranges', norm=norm,
+                        alpha=0.9, mincnt=25, edgecolors='orange')
+
+        cb1 = fig.colorbar(hb1)
+        cb1.set_label('Interest Frequency', fontsize=10)
+        cb1.ax.tick_params(labelsize=9)
+        cb2 = fig.colorbar(hb2)
+        cb2.set_label('Data Frequency', fontsize=10)
+        cb2.ax.tick_params(labelsize=9)
+
+        ax.set_xlabel('Number of Components', fontsize=10)
+        ax.set_ylabel('Name Length [Bytes]', fontsize=10)
 
         ax.grid(axis='y')
         ax.set_ylim(bottom=0)

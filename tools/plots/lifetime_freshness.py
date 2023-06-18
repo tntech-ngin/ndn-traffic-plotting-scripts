@@ -1,6 +1,7 @@
 import os
 import asyncio
 import argparse
+from matplotlib import ticker
 import numpy as np
 import matplotlib.pyplot as plt
 from settings import DB, LOGGER, MONGO_COLLECTION_INTEREST, MONGO_COLLECTION_DATA, \
@@ -40,22 +41,25 @@ class LifetimeFreshnessCDF:
             1, len(data_freshness_values) + 1) / len(data_freshness_values)
 
         LOGGER.info('Plotting...')
-        fig, ax1 = plt.subplots(figsize=(8, 4))
-        ax1.plot(interest_lifetime_values, interest_lifetime_cdf,
-                 label='Interest lifetime')
-        ax1.plot(data_freshness_values, data_freshness_cdf,
-                 label='Data freshness', color='r')
-        ax1.set_xlim(0.5, 1e8)
+        fig, ax = plt.subplots(figsize=(8, 4))
+        ax.plot(interest_lifetime_values, interest_lifetime_cdf,
+                label='Interest lifetime')
+        ax.plot(data_freshness_values, data_freshness_cdf,
+                label='Data freshness', color='r')
 
-        ax1.xaxis.label.set_size(10)
-        ax1.yaxis.label.set_size(10)
+        ax.set_xlim(0.5, 1e8)
+        ax.set_ylim(0, 1)
 
-        ax1.yaxis.set_minor_locator(plt.MultipleLocator(0.1))
+        ax.set_xscale('log')
+        ax.set_xlabel('Lifetime / Freshness (ms)')
+        ax.set_ylabel('CDF')
+        ax.grid(True)
+        ax.legend(loc='upper left')
 
-        ax1.set_xscale('log')
-        ax1.set_xlabel('Lifetime / Freshness (ms)')
-        ax1.set_ylabel('CDF')
-        ax1.legend(loc='upper left')
+        ax.xaxis.set_minor_locator(ticker.LogLocator(
+            base=10, subs=np.arange(1, 10.0), numticks=10))
+        # ax.set_yticks(np.linspace(0, 1, num=11))
+        ax.yaxis.set_minor_locator(plt.MultipleLocator(0.1))
 
         fig.tight_layout()
 

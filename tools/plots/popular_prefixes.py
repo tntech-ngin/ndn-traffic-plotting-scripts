@@ -47,10 +47,10 @@ class PopularPrefixes:
         }
 
         LOGGER.info('Plotting...')
-        fig, ax = plt.subplots(2, 1, figsize=(12, 8))
+        fig, ax = plt.subplots(2, 1, figsize=(11, 6))
 
         ax[0].set_ylabel('Interests', fontsize=12)
-        ax[1].set_ylabel('Data', fontsize=12, labelpad=40)
+        ax[1].set_ylabel('Data', fontsize=12)
 
         ax[0].yaxis.set_label_coords(-0.09, 0.5)
         ax[1].yaxis.set_label_coords(-0.09, 0.5)
@@ -64,7 +64,7 @@ class PopularPrefixes:
         ax[0].yaxis.set_major_locator(LogLocator(numticks=10))
         ax[1].yaxis.set_major_locator(LogLocator(numticks=10))
 
-        bar_width = 1
+        bar_width = 1.5
         colors = ['#66b3ff', '#99ff99', '#ff9999', '#ffcc99', '#c2c2f0']
 
         # Plot top 5 prefixes with counts only up to the 5th level
@@ -106,9 +106,14 @@ class PopularPrefixes:
         ax[1].spines['top'].set_visible(False)
 
         ax[0].set_yticklabels(
-            ['Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level 5'])
+            ['Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level 5'], fontsize=9)
         ax[1].set_yticklabels(
-            ['Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level 5'])
+            ['Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level 5'], fontsize=9)
+
+        ax[0].yaxis.set_ticks_position('none')
+        ax[1].yaxis.set_ticks_position('none')
+
+        fig.tight_layout()
 
         if self.save_fig:
             fig.savefig(os.path.join(
