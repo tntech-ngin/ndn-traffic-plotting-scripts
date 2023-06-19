@@ -118,10 +118,10 @@ class PacketsHistogramThroughput:
         min_packets = min(min(interest_num_packets), min(data_num_packets))
         max_packets = max(max(interest_num_packets), max(data_num_packets))
         locator = int((max_packets - min_packets) / 5)
+        locator = PacketsHistogramThroughput.LOCATOR_MIN if locator == 0 else locator
         locator = self._round_up_to_next_order_of_magnitude(locator)
 
         ax1.yaxis.set_major_locator(ticker.MultipleLocator(locator))
-        ax1.yaxis.set_minor_locator(ticker.MultipleLocator(locator / 2))
 
         ax1.yaxis.set_major_formatter(ticker.FuncFormatter(
             lambda x, pos: int(x / 1000) if x > 0 else 0))
@@ -148,8 +148,12 @@ class PacketsHistogramThroughput:
         locator = self._round_up_to_next_order_of_magnitude(locator)
 
         ax2.yaxis.set_major_locator(ticker.MultipleLocator(locator))
-        ax2.yaxis.set_minor_locator(ticker.MultipleLocator(locator / 2))
         ax2.set_ylim(bottom=0)
+
+        ax1.spines['right'].set_visible(False)
+        ax1.spines['top'].set_visible(False)
+        ax2.spines['right'].set_visible(False)
+        ax2.spines['top'].set_visible(False)
 
         plt.tight_layout()
 
