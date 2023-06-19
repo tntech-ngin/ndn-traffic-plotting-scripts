@@ -91,8 +91,11 @@ class PopularPrefixes:
                 ax[1].text(count + 0.2 * count, i * 12 + offset, prefix, ha='left', va='center',
                            rotation=0, fontsize=8, fontdict={'style': 'italic'})
 
-        ax[0].set_xlim(1e3, 1e7)
-        ax[1].set_xlim(1e3, 1e7)
+        x_min = min(ax[0].get_xlim()[0], ax[1].get_xlim()[0])
+        x_max = max(ax[0].get_xlim()[1], ax[1].get_xlim()[1])
+
+        ax[0].set_xlim(x_min, x_max)
+        ax[1].set_xlim(x_min, x_max)
 
         ax[0].set_yticks([172, 132, 92, 52, 12])
         ax[1].set_yticks([172, 132, 92, 52, 12])

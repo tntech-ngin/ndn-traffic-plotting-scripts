@@ -1,4 +1,5 @@
 import os
+import math
 import asyncio
 import argparse
 from matplotlib import cm, ticker
@@ -11,10 +12,16 @@ from settings import DB, LOGGER, MONGO_COLLECTION_INTEREST, MONGO_COLLECTION_DAT
 
 
 class PacketsHistogramThroughput:
+    LOCATOR_MIN = 1
+
     def __init__(self, db, collections):
         self.db = db
         self.collections = collections
         self.save_fig = False
+
+    def _round_up_to_next_order_of_magnitude(self, x):
+        power = 10 ** (len(str(int(x))) - 1)
+        return math.floor(x / float(power)) * power
 
     async def plot(self, duration):
         LOGGER.info('Getting the packets...')
@@ -95,7 +102,7 @@ class PacketsHistogramThroughput:
 
         # First plot
         ax1.bar(np.arange(num_durations), interest_num_packets,
-                color=cm.Paired(0), label='Interests', align='edge')
+                color=cm.Paired(0), label='Interests')
         ax1.bar(np.arange(num_durations),
                 data_num_packets, color=cm.Paired(1), label='Data', align='edge')
         duration_labels = [(start_time + timedelta(minutes=i * duration)).strftime('%-I:%M %p')
@@ -107,8 +114,15 @@ class PacketsHistogramThroughput:
             ticker.MultipleLocator(min(15/duration, num_durations)))
         ax1.xaxis.set_major_formatter(ticker.FuncFormatter(
             lambda x, pos: duration_labels[int(x)] if x < len(duration_labels) else ''))
-        ax1.yaxis.set_major_locator(ticker.MultipleLocator(20000))
-        ax1.yaxis.set_minor_locator(ticker.MultipleLocator(10000))
+
+        min_packets = min(min(interest_num_packets), min(data_num_packets))
+        max_packets = max(max(interest_num_packets), max(data_num_packets))
+        locator = int((max_packets - min_packets) / 5)
+        locator = self._round_up_to_next_order_of_magnitude(locator)
+
+        ax1.yaxis.set_major_locator(ticker.MultipleLocator(locator))
+        ax1.yaxis.set_minor_locator(ticker.MultipleLocator(locator / 2))
+
         ax1.yaxis.set_major_formatter(ticker.FuncFormatter(
             lambda x, pos: int(x / 1000) if x > 0 else 0))
         # ax1.set_xlabel('Timestamp [UTC]')
@@ -126,8 +140,15 @@ class PacketsHistogramThroughput:
             lambda x, pos: duration_labels[int(x)] if x < len(duration_labels) else ''))
         ax2.set_xlabel('Timestamp [UTC]')
         ax2.set_ylabel('Throughput [Mbps]', fontsize=10)
-        ax2.yaxis.set_major_locator(ticker.MultipleLocator(30))
-        ax2.yaxis.set_minor_locator(ticker.MultipleLocator(15))
+
+        min_y = min([y for y in throughput if y > 0])
+        max_y = max(throughput)
+        locator = int((max_y - min_y) / 5)
+        locator = PacketsHistogramThroughput.LOCATOR_MIN if locator == 0 else locator
+        locator = self._round_up_to_next_order_of_magnitude(locator)
+
+        ax2.yaxis.set_major_locator(ticker.MultipleLocator(locator))
+        ax2.yaxis.set_minor_locator(ticker.MultipleLocator(locator / 2))
         ax2.set_ylim(bottom=0)
 
         plt.tight_layout()
