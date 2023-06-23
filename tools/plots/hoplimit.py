@@ -7,7 +7,7 @@ from settings import DB, LOGGER, MONGO_COLLECTION_INTEREST, DATA_DIR, MONGO_DB_N
 
 
 class HopLimit:
-    DEFAULT_HOPLIMIT = 256
+    DEFAULT_HOPLIMIT = 255
 
     def __init__(self, db, collections):
         self.db = db
@@ -28,21 +28,25 @@ class HopLimit:
             counts[hoplimit] = counts.get(hoplimit, 0) + 1
 
         LOGGER.info('Plotting...')
-        fig, ax = plt.subplots(figsize=(12, 7))
+        fig, ax = plt.subplots(figsize=(14, 8))
         ax.bar(counts.keys(), counts.values())
-        ax.set_xlabel('Hop Limit')
-        ax.set_ylabel('Count')
-        ax.set_yscale('asinh')
-        ax.set_ylim(bottom=1)
+        ax.set_xlabel('Hop Limit', fontsize=30)
+        ax.set_ylabel('Count', fontsize=30)
+        ax.set_xlim(-5, 260)  # Margins of 5
+        ax.set_ylim(bottom=0)
+        ax.set_yscale('symlog')
         ax.xaxis.set_major_locator(ticker.MultipleLocator(25))
         ax.xaxis.set_minor_locator(ticker.MultipleLocator(12.5))
         ax.grid(axis='y')
+
+        ax.tick_params(axis='both', which='major', labelsize=28)
+        ax.tick_params(axis='both', which='minor', labelsize=26)
 
         fig.tight_layout()
 
         if self.save_fig:
             fig.savefig(os.path.join(
-                DATA_DIR, f'{MONGO_DB_NAME}-hoplimit.pdf'), bbox_inches='tight')
+                DATA_DIR, f'{MONGO_DB_NAME}-hoplimit.pdf'), bbox_inches='tight', dpi=300)
             LOGGER.info(
                 f'Hop limit saved to {os.path.join(DATA_DIR, f"{MONGO_DB_NAME}-hoplimit.pdf")}')
         else:

@@ -8,7 +8,6 @@ import numpy as np
 from settings import DB, LOGGER, MONGO_COLLECTION_INTEREST, MONGO_COLLECTION_DATA, \
     DATA_DIR, MONGO_DB_NAME
 
-
 class ComponentsHexbin:
     def __init__(self, db, collections):
         self.db = db
@@ -35,8 +34,8 @@ class ComponentsHexbin:
                     d_d.append((num_c, name_len))
 
         LOGGER.info('Plotting...')
-        fig, ax = plt.subplots(figsize=(12, 7))
-        ax.tick_params(axis='both', which='major', labelsize=9)
+        fig, ax = plt.subplots(figsize=(14, 8))
+        ax.tick_params(axis='both', which='major', labelsize=28)
         hb1 = ax.hexbin(*zip(*i_d), gridsize=25, cmap='Blues',
                         alpha=0.9, mincnt=25, edgecolors='blue')
         hb2 = ax.hexbin(*zip(*d_d), gridsize=25, cmap='Oranges',
@@ -52,22 +51,25 @@ class ComponentsHexbin:
                         alpha=0.9, mincnt=25, edgecolors='orange')
 
         cb1 = fig.colorbar(hb1)
-        cb1.set_label('Interest Frequency', fontsize=10)
-        cb1.ax.tick_params(labelsize=9)
         cb2 = fig.colorbar(hb2)
-        cb2.set_label('Data Frequency', fontsize=10)
-        cb2.ax.tick_params(labelsize=9)
+        cb1.ax.tick_params(labelsize=16)
+        cb2.ax.tick_params(labelsize=16)
+        cb1.set_label('Interest Frequency', fontsize=20)
+        cb2.set_label('Data Frequency', fontsize=20)
+        cb1.ax.yaxis.get_offset_text().set_fontsize(20)
+        cb2.ax.yaxis.get_offset_text().set_fontsize(20)
 
-        ax.set_xlabel('Number of Components', fontsize=10)
-        ax.set_ylabel('Name Length [Bytes]', fontsize=10)
+        ax.set_xlabel('Number of Components', fontsize=20)
+        ax.set_ylabel('Name Length [Bytes]', fontsize=20)
 
         ax.grid(axis='y')
+        ax.tick_params(axis='both', which='major', labelsize=16)
         ax.set_ylim(bottom=0)
         ax.yaxis.set_ticks(np.arange(0, ax.get_ylim()[1], 50))
 
         if self.save_fig:
             fig.savefig(os.path.join(DATA_DIR, f'{MONGO_DB_NAME}-hexbin.pdf'),
-                        bbox_inches='tight')
+                        bbox_inches='tight', dpi=300)
             LOGGER.info(
                 f'Hexbin saved to {os.path.join(DATA_DIR, f"{MONGO_DB_NAME}-hexbin.pdf")}')
         else:

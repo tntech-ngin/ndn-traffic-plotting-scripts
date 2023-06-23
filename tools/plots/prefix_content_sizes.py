@@ -32,17 +32,20 @@ class PrefixContentSizes:
         df = pd.DataFrame.from_dict(content_sizes, orient='index').transpose()
 
         LOGGER.info('Plotting...')
-        fig, ax = plt.subplots(figsize=(12, 7))
+        fig, ax = plt.subplots(figsize=(14, 8))
         ax.grid(axis='y')
         for column in df.columns:
             sns.histplot(df[column].dropna(), ax=ax)
-            ax.set_xlabel('Data Packet Size [Bytes]')
+            ax.set_xlabel('Data Packet Size [Bytes]', fontsize=30)
+            ax.set_ylabel('Count', fontsize=30)
+            ax.tick_params(axis='both', which='major', labelsize=28)
+            ax.tick_params(axis='both', which='minor', labelsize=26)
 
         plt.tight_layout()
 
         if self.save_fig:
             fig.savefig(os.path.join(
-                DATA_DIR, f'{MONGO_DB_NAME}-prefix_content_sizes.pdf'), bbox_inches='tight')
+                DATA_DIR, f'{MONGO_DB_NAME}-prefix_content_sizes.pdf'), bbox_inches='tight', dpi=300)
             LOGGER.info(
                 f'Prefix content sizes saved to {os.path.join(DATA_DIR, f"{MONGO_DB_NAME}-prefix_content_sizes.pdf")}')
         else:

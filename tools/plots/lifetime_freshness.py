@@ -41,31 +41,34 @@ class LifetimeFreshnessCDF:
             1, len(data_freshness_values) + 1) / len(data_freshness_values)
 
         LOGGER.info('Plotting...')
-        fig, ax = plt.subplots(figsize=(8, 4))
+        fig, ax = plt.subplots(figsize=(14, 8))
         ax.plot(interest_lifetime_values, interest_lifetime_cdf,
                 label='Interest lifetime')
         ax.plot(data_freshness_values, data_freshness_cdf,
-                label='Data freshness', color='r')
+                label='Freshness period', color='r')
 
         ax.set_xlim(0.5, 1e8)
         ax.set_ylim(0, 1)
 
         ax.set_xscale('log')
-        ax.set_xlabel('Lifetime / Freshness (ms)')
-        ax.set_ylabel('CDF')
+        ax.set_xlabel('lifetime / freshness period (ms)', fontsize=30)
+        ax.set_ylabel('cdf', fontsize=30)
         ax.grid(True)
-        ax.legend(loc='upper left')
+        ax.legend(loc='upper left', fontsize=28)
 
         ax.xaxis.set_minor_locator(ticker.LogLocator(
             base=10, subs=np.arange(1, 10.0), numticks=10))
         # ax.set_yticks(np.linspace(0, 1, num=11))
         ax.yaxis.set_minor_locator(plt.MultipleLocator(0.1))
 
+        ax.tick_params(axis='both', which='major', labelsize=28)
+        ax.tick_params(axis='both', which='minor', labelsize=26)
+
         fig.tight_layout()
 
         if self.save_fig:
             fig.savefig(os.path.join(DATA_DIR, f'{MONGO_DB_NAME}-lifetimefreshness-cdf.pdf'),
-                        bbox_inches='tight')
+                        bbox_inches='tight', dpi=300)
             LOGGER.info(
                 f'Lifetimefreshness cdf saved to {os.path.join(DATA_DIR, f"{MONGO_DB_NAME}-lifetimefreshness-cdf.pdf")}')
         else:
