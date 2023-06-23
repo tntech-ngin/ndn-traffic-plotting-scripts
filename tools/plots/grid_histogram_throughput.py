@@ -10,11 +10,9 @@ from settings import LOGGER, MONGO_COLLECTION_INTEREST, MONGO_COLLECTION_DATA, \
     MONGO_COLLECTION_NACK, MONGO_COLLECTION_FRAGMENT, \
     DATA_DIR, DB_CLIENT
 
-plt.rcParams['text.antialiased'] = True
-
 # may 31
-# DBS = ['suns-cs-ucla-edu-2023-06-01T05:00:02Z', 'wundngw-2023-06-01T05:00:20Z',
-#                  'hobo-2023-06-01T05:00:03Z', 'titan-2023-06-01T05:00:37Z']
+DBS = ['suns-cs-ucla-edu-2023-06-01T05:00:02Z', 'wundngw-2023-06-01T05:00:20Z',
+                 'hobo-2023-06-01T05:00:03Z', 'titan-2023-06-01T05:00:37Z']
 
 # jun 3
 # DBS = ['suns-cs-ucla-edu-2023-06-04T05:00:03Z', 'wundngw-2023-06-04T05:00:20Z',
