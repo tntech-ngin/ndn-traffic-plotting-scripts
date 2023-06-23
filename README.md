@@ -1,6 +1,3 @@
-# Project Title
-NDN Packet Viewer
-
 # Description
 This project is a packet analyser for Named Data Networking (NDN) packets. It uses a MongoDB database to store the packets
 and provides various plotting scripts to visualise the data. The included plotting scripts are:
