@@ -13,8 +13,8 @@ Other scripts are not well tested.
 
 # Getting Started
 ## Prerequisites
-* Python > 3.10
-* MongoDB > 6.0.6
+* Python >= 3.10
+* MongoDB >= 6.0.6
 * [ndntdump](https://github.com/usnistgov/ndntdump)
 
 ## Installation 
