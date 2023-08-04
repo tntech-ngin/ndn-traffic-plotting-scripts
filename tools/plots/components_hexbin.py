@@ -5,8 +5,9 @@ from matplotlib import colors
 from ndn.encoding import Name
 import matplotlib.pyplot as plt
 import numpy as np
-from settings import DB, LOGGER, MONGO_COLLECTION_INTEREST, MONGO_COLLECTION_DATA, \
-    DATA_DIR, MONGO_DB_NAME
+import seaborn as sns
+from settings import *
+
 
 class ComponentsHexbin:
     def __init__(self, db, collections):
@@ -34,8 +35,9 @@ class ComponentsHexbin:
                     d_d.append((num_c, name_len))
 
         LOGGER.info('Plotting...')
+        sns.set_context('paper', font_scale=2)
         fig, ax = plt.subplots(figsize=(14, 8))
-        ax.tick_params(axis='both', which='major', labelsize=28)
+        ax.tick_params(axis='both', which='major')
         hb1 = ax.hexbin(*zip(*i_d), gridsize=25, cmap='Blues',
                         alpha=0.9, mincnt=25, edgecolors='blue')
         hb2 = ax.hexbin(*zip(*d_d), gridsize=25, cmap='Oranges',
@@ -52,18 +54,14 @@ class ComponentsHexbin:
 
         cb1 = fig.colorbar(hb1)
         cb2 = fig.colorbar(hb2)
-        cb1.ax.tick_params(labelsize=16)
-        cb2.ax.tick_params(labelsize=16)
-        cb1.set_label('Interest Frequency', fontsize=20)
-        cb2.set_label('Data Frequency', fontsize=20)
-        cb1.ax.yaxis.get_offset_text().set_fontsize(20)
-        cb2.ax.yaxis.get_offset_text().set_fontsize(20)
+        cb1.set_label('Interest Frequency')
+        cb2.set_label('Data Frequency')
 
-        ax.set_xlabel('Number of Components', fontsize=20)
-        ax.set_ylabel('Name Length [Bytes]', fontsize=20)
+        ax.set_xlabel('Number of Components')
+        ax.set_ylabel('Name Length [Bytes]')
 
         ax.grid(axis='y')
-        ax.tick_params(axis='both', which='major', labelsize=16)
+        ax.tick_params(axis='both', which='major')
         ax.set_ylim(bottom=0)
         ax.yaxis.set_ticks(np.arange(0, ax.get_ylim()[1], 50))
 

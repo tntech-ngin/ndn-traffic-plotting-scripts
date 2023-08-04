@@ -4,8 +4,8 @@ import argparse
 import matplotlib.pyplot as plt
 from collections import Counter
 from ndn.encoding import Name
-from settings import DB, LOGGER, MONGO_COLLECTION_INTEREST, MONGO_COLLECTION_DATA, \
-    DATA_DIR, MONGO_DB_NAME
+import seaborn as sns
+from settings import *
 
 
 class PopularPrefixes:
@@ -20,7 +20,7 @@ class PopularPrefixes:
         prefix_counters_data = {}
 
         for collection in self.collections.values():
-            async for document in self.db[collection].find({}, {'_id': 0, 'name': 1}).limit(1000):
+            async for document in self.db[collection].find({}, {'_id': 0, 'name': 1}):
                 name_components = document['name'].split('/')[1:]
 
                 for i in range(1, min(len(name_components), 5) + 1):  # Limit to first 5 levels
@@ -46,20 +46,13 @@ class PopularPrefixes:
         }
 
         LOGGER.info('Plotting...')
-        fig, ax = plt.subplots(2, 1, figsize=(18, 12))
-
-        ax[0].set_ylabel('Interests', fontsize=18)
-        ax[1].set_ylabel('Data', fontsize=18)
-
-        # ax[0].set_xlabel('Count')
-        ax[1].set_xlabel('Count', fontsize=18)
+        sns.set_context('paper', font_scale=2)
+        fig, ax = plt.subplots(2, 1, figsize=(16, 14))
+        ax[0].set_ylabel('Interests')
+        ax[1].set_ylabel('Data')
+        ax[1].set_xlabel('Count')
         ax[0].set_xscale('log')
         ax[1].set_xscale('log')
-
-        # Set the y-axis to have more frequent ticks
-        # ax[0].yaxis.set_major_locator(LogLocator(numticks=10))
-        # ax[1].yaxis.set_major_locator(LogLocator(numticks=10))
-
         bar_width = 10
         colors = ['#66b3ff', '#99ff99', '#ff9999', '#ffcc99', '#c2c2f0']
         colors = ['#FF6347', '#B22222', '#008080', '#4682B4', '#BA55D3']
@@ -79,7 +72,7 @@ class PopularPrefixes:
                 prefix = Name.to_str(Name.from_str(prefix))
                 x_position = bar[0].get_bbox().x1
                 ax[0].text(x_position, i * 12 + offset, prefix, ha='left', va='center',
-                           rotation=0, fontdict={'style': 'italic', 'color': 'black', 'size': 16, 'family': 'monospace'})
+                           rotation=0, fontdict={'style': 'italic', 'color': 'black'})
 
             for i, (prefix, count) in enumerate(reversed(data_prefixes)):
                 bar = ax[1].barh(i * 12 + offset, count, height=bar_width, alpha=0.2, edgecolor='black',
@@ -88,36 +81,28 @@ class PopularPrefixes:
                 prefix = Name.to_str(Name.from_str(prefix))
                 x_position = bar[0].get_bbox().x1
                 ax[1].text(x_position, i * 13 + offset, prefix, ha='left', va='center',
-                           rotation=0, fontdict={'style': 'italic', 'color': 'black', 'size': 16, 'family': 'monospace'})
+                           rotation=0, fontdict={'style': 'italic', 'color': 'black'})
 
         x_min = min(ax[0].get_xlim()[0], ax[1].get_xlim()[0])
         x_max = max(ax[0].get_xlim()[1], ax[1].get_xlim()[1])
-
         ax[0].set_xlim(x_min, x_max)
         ax[1].set_xlim(x_min, x_max)
-
         ax[0].set_yticks([172, 132, 92, 52, 12])
         ax[1].set_yticks([172, 132, 92, 52, 12])
-
         ax[0].set_ylim(-10)
         ax[1].set_ylim(-10)
-
         ax[0].spines['right'].set_visible(False)
         ax[0].spines['top'].set_visible(False)
         ax[1].spines['right'].set_visible(False)
         ax[1].spines['top'].set_visible(False)
-
         ax[0].set_yticklabels(
-            ['L1', 'L2', 'L3', 'L4', 'L5'], fontsize=16)
+            ['L1', 'L2', 'L3', 'L4', 'L5'])
         ax[1].set_yticklabels(
-            ['L1', 'L2', 'L3', 'L4', 'L5'], fontsize=16)
-
-        ax[0].tick_params(axis='both', which='major', labelsize=16)
-        ax[1].tick_params(axis='both', which='major', labelsize=16)
-
+            ['L1', 'L2', 'L3', 'L4', 'L5'])
+        ax[0].tick_params(axis='both', which='major')
+        ax[1].tick_params(axis='both', which='major')
         ax[0].yaxis.set_ticks_position('none')
         ax[1].yaxis.set_ticks_position('none')
-
         fig.tight_layout()
 
         if self.save_fig:

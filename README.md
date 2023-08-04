@@ -30,7 +30,7 @@ pip install -r requirements.txt
 ```
 3. Create .env
 ```bash
-cp .env.example .env
+cp .env.sample .env
 ```
 4. Create ndjson from pcapng.zst dump file
     - Find the local MAC address
@@ -39,7 +39,7 @@ cp .env.example .env
     ```
     - Extract into ndjson
     ```bash
-    ndntdump -r <file_path_to_pcapng.zst> --local <local_mac_address> -L <path_to_ouput_file>
+    ndntdump -r <file_path_to_pcapng.zst> --local <local_mac_address> -L <path_to_output_file>
     ```
 5. Edit `.env` file and change the MONGO_DB_NAME to the name of the database you want to use
 6. Index ndjson file into MongoDB

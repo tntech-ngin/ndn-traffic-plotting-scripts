@@ -4,8 +4,8 @@ import argparse
 from matplotlib import ticker
 import numpy as np
 import matplotlib.pyplot as plt
-from settings import DB, LOGGER, MONGO_COLLECTION_INTEREST, MONGO_COLLECTION_DATA, \
-    DATA_DIR, MONGO_DB_NAME
+import seaborn as sns
+from settings import *
 
 
 class LifetimeFreshnessCDF:
@@ -41,29 +41,25 @@ class LifetimeFreshnessCDF:
             1, len(data_freshness_values) + 1) / len(data_freshness_values)
 
         LOGGER.info('Plotting...')
+        sns.set_context('paper', font_scale=2)
         fig, ax = plt.subplots(figsize=(14, 8))
         ax.plot(interest_lifetime_values, interest_lifetime_cdf,
                 label='Interest lifetime')
         ax.plot(data_freshness_values, data_freshness_cdf,
                 label='Freshness period', color='r')
-
         ax.set_xlim(0.5, 1e8)
         ax.set_ylim(0, 1)
-
         ax.set_xscale('log')
-        ax.set_xlabel('lifetime / freshness period (ms)', fontsize=30)
-        ax.set_ylabel('cdf', fontsize=30)
+        ax.set_xlabel('Lifetime / Freshness period [ms]')
+        ax.set_ylabel('CDF')
         ax.grid(True)
-        ax.legend(loc='upper left', fontsize=28)
-
+        ax.legend(loc='upper left')
         ax.xaxis.set_minor_locator(ticker.LogLocator(
             base=10, subs=np.arange(1, 10.0), numticks=10))
         # ax.set_yticks(np.linspace(0, 1, num=11))
         ax.yaxis.set_minor_locator(plt.MultipleLocator(0.1))
-
-        ax.tick_params(axis='both', which='major', labelsize=28)
-        ax.tick_params(axis='both', which='minor', labelsize=26)
-
+        ax.tick_params(axis='both', which='major')
+        ax.tick_params(axis='both', which='minor')
         fig.tight_layout()
 
         if self.save_fig:
