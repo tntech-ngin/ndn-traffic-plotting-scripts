@@ -110,7 +110,7 @@ class PacketsHistogramThroughput:
             filename = PurePath(self.output).with_suffix('.pdf')
             fig.savefig(filename, bbox_inches='tight', dpi=300)
             LOGGER.info(
-                f'Histogram saved to {f"{filename}"}')
+                f'Histogram saved to {filename}')
         else:
             plt.show()
 

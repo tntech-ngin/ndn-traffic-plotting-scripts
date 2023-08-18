@@ -29,11 +29,6 @@ class HopLimit:
         for hoplimit in hoplimits:
             counts[hoplimit] = counts.get(hoplimit, 0) + 1
 
-        # Save to csv
-        df = pd.DataFrame.from_dict(counts, orient='index', columns=['count'])
-        df.index.name = 'hoplimit'
-        df.to_csv(f'{MONGO_DB_NAME}-hoplimit.csv')
-
         LOGGER.info('Plotting...')
         sns.set_context('paper', font_scale=2)
         fig, ax = plt.subplots(figsize=(14, 8))
@@ -54,7 +49,7 @@ class HopLimit:
             filename = PurePath(self.output).with_suffix('.pdf')
             fig.savefig(filename, bbox_inches='tight', dpi=300)
             LOGGER.info(
-                f'Hop limit saved to {f"{filename}"}')
+                f'Hop limit saved to {filename}')
         else:
             plt.show()
 

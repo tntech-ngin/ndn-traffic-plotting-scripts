@@ -66,7 +66,7 @@ class LifetimeFreshnessCDF:
             filename = PurePath(self.output).with_suffix('.pdf')
             fig.savefig(filename, bbox_inches='tight', dpi=300)
             LOGGER.info(
-                f'Lifetimefreshness cdf saved to {f"{filename}"}')
+                f'Lifetimefreshness cdf saved to {filename}')
         else:
             plt.show()
 

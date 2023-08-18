@@ -37,7 +37,7 @@ class NLSRContentSizeDistribution:
             filename = PurePath(self.output).with_suffix('.pdf')
             fig.savefig(filename, bbox_inches='tight', dpi=300)
             LOGGER.info(
-                f'Content size distribution saved to {f"{filename}"}')
+                f'Content size distribution saved to {filename}')
         else:
             plt.show()
 

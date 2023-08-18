@@ -163,7 +163,7 @@ if __name__ == '__main__':
             filename = PurePath(args.output).with_suffix('.pdf')
             plt.savefig(filename, bbox_inches='tight', dpi=300)
             LOGGER.info(
-                f"Combined grid histogram throughput saved to {f'{filename}'}")
+                f"Combined grid histogram throughput saved to {filename}")
         else:
             plt.show()
 
