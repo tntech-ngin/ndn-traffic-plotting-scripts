@@ -1,51 +1,43 @@
 import asyncio
 import argparse
-import os
 import matplotlib.pyplot as plt
 import seaborn as sns
-import pandas as pd
-import seaborn as sns
+from pathlib import PurePath
 from settings import *
 
 
-class PrefixContentSizes:
+class NLSRContentSizeDistribution:
     def __init__(self, db, collections):
         self.db = db
         self.collections = collections
-        self.save_fig = False
+        self.output = False
 
     async def plot(self):
-        search_terms = ['nlsr']
-        content_sizes = {term: [] for term in search_terms}
+        search_term = 'nlsr'
+        content_sizes = []
 
         LOGGER.info('Getting the packets...')
         for collection in self.collections.values():
             async for packet in self.db[collection].find({}, {'_id': 0, 'name': 1, 'size3': 1}):
-                for term in search_terms:
-                    if term in packet['name']:
-                        content_sizes[term].append(packet['size3'])
-
-        LOGGER.info('Preparing data...')
-        df = pd.DataFrame.from_dict(content_sizes, orient='index').transpose()
+                if search_term in packet['name']:
+                    content_sizes.append(packet['size3'])
 
         LOGGER.info('Plotting...')
         sns.set_context('paper', font_scale=2)
         fig, ax = plt.subplots(figsize=(14, 8))
         ax.grid(axis='y')
-        for column in df.columns:
-            sns.histplot(df[column].dropna(), ax=ax)
-            ax.set_xlabel('Data Packet Size [Bytes]')
-            ax.set_ylabel('Count')
-            ax.tick_params(axis='both', which='major')
-            ax.tick_params(axis='both', which='minor')
-
+        ax.hist(content_sizes, bins=80, color='#4787BB', edgecolor='black')
+        ax.set_xlabel('Data Packet Size [Bytes]')
+        ax.set_ylabel('Count')
+        ax.tick_params(axis='both', which='major')
+        ax.tick_params(axis='both', which='minor')
         plt.tight_layout()
 
-        if self.save_fig:
-            fig.savefig(os.path.join(
-                DATA_DIR, f'{MONGO_DB_NAME}-content_size_distribution.pdf'), bbox_inches='tight', dpi=300)
+        if self.output:
+            filename = PurePath(self.output).with_suffix('.pdf')
+            fig.savefig(filename, bbox_inches='tight', dpi=300)
             LOGGER.info(
-                f'Content size distribution saved to {os.path.join(DATA_DIR, f"{MONGO_DB_NAME}-content_size_distribution.pdf")}')
+                f'Content size distribution saved to {f"{filename}"}')
         else:
             plt.show()
 
@@ -53,13 +45,12 @@ class PrefixContentSizes:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Plot content size distribution for data packets.', prog='python -m tools.plots.content_size_distribution')
-
-    parser.add_argument('--save-fig', default=False, action=argparse.BooleanOptionalAction,
-                        help='Save figure to file (default: False).')
+    parser.add_argument('-o', '--output', metavar='FILE',
+                        type=str, help='Save to file.')
     args = parser.parse_args()
 
-    plot = PrefixContentSizes(
+    plot = NLSRContentSizeDistribution(
         DB, {'DATA': MONGO_COLLECTION_DATA})
 
-    plot.save_fig = args.save_fig
+    plot.output = args.output
     asyncio.run(plot.plot())

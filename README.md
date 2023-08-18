@@ -2,14 +2,12 @@
 This project is a packet analyser for Named Data Networking (NDN) packets. It uses a MongoDB database to store the packets
 and provides various plotting scripts to visualise the data. The included plotting scripts are:
 * `components_hexbin.py` - plots the distribution of number of components to its name length
-* `grid_histogram_throughput.py` - plots the throughput graph of four nodes
+* `grid_throughput.py` - plots the throughput graph of four nodes
 * `hoplimit.py` - plots the hop limit of packets
 * `lifetime_freshness.py` - plots cdf of lifetime and freshness of packets
-* `packets_histogram_throughput_combined.py` - plots the throughput graph of a node with number of packets and size of packets combined in one plot
-* `packets_histogram_throughput.py` - plots the throughput graph of a node with number of packets and size of packets in separate plots
+* `throughput.py` - plots the throughput graph of a node with number of packets and size of packets in separate plots
 * `popular_prefixes.py` - plots the most popular prefixes in interest and data packets
-
-Other scripts are not well tested.
+* `content_size_distribution` - plots the distribution of content size of NLSR traffic
 
 # Getting Started
 ## Prerequisites

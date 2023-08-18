@@ -1,4 +1,3 @@
-import os
 import asyncio
 import argparse
 from matplotlib import colors
@@ -6,6 +5,7 @@ from ndn.encoding import Name
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+from pathlib import PurePath
 from settings import *
 
 
@@ -13,7 +13,7 @@ class ComponentsHexbin:
     def __init__(self, db, collections):
         self.db = db
         self.collections = collections
-        self.save_fig = False
+        self.output = False
 
     async def plot(self):
         LOGGER.info('Getting the packets...')
@@ -65,11 +65,11 @@ class ComponentsHexbin:
         ax.set_ylim(bottom=0)
         ax.yaxis.set_ticks(np.arange(0, ax.get_ylim()[1], 50))
 
-        if self.save_fig:
-            fig.savefig(os.path.join(DATA_DIR, f'{MONGO_DB_NAME}-hexbin.pdf'),
-                        bbox_inches='tight', dpi=300)
+        if self.output:
+            filename = PurePath(self.output).with_suffix('.pdf')
+            fig.savefig(filename, bbox_inches='tight', dpi=300)
             LOGGER.info(
-                f'Hexbin saved to {os.path.join(DATA_DIR, f"{MONGO_DB_NAME}-hexbin.pdf")}')
+                f'Hexbin saved to {f"{filename}"}')
         else:
             plt.show()
 
@@ -77,13 +77,12 @@ class ComponentsHexbin:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Plot components distribution hexbin', prog='python -m tools.plots.components_hexbin')
-
-    parser.add_argument('--save-fig', default=False, action=argparse.BooleanOptionalAction,
-                        help='Save figure to file (default: False).')
+    parser.add_argument('-o', '--output', metavar='FILE',
+                        type=str, help='Save to file.')
     args = parser.parse_args()
 
     plot = ComponentsHexbin(
         DB, {'INTEREST': MONGO_COLLECTION_INTEREST, 'DATA': MONGO_COLLECTION_DATA})
 
-    plot.save_fig = args.save_fig
+    plot.output = args.output
     asyncio.run(plot.plot())

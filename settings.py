@@ -6,7 +6,6 @@ from envparse import env
 from motor.motor_asyncio import AsyncIOMotorClient
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(ROOT_DIR, 'data')
 
 if os.path.isfile(os.path.join(ROOT_DIR, '.env')):
     env.read_envfile(os.path.join(ROOT_DIR, '.env'))

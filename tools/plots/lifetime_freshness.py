@@ -1,10 +1,10 @@
-import os
 import asyncio
 import argparse
 from matplotlib import ticker
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from pathlib import PurePath
 from settings import *
 
 
@@ -15,7 +15,7 @@ class LifetimeFreshnessCDF:
     def __init__(self, db, collections):
         self.db = db
         self.collections = collections
-        self.save_fig = False
+        self.output = False
 
     async def plot(self):
         LOGGER.info('Getting the packets...')
@@ -62,11 +62,11 @@ class LifetimeFreshnessCDF:
         ax.tick_params(axis='both', which='minor')
         fig.tight_layout()
 
-        if self.save_fig:
-            fig.savefig(os.path.join(DATA_DIR, f'{MONGO_DB_NAME}-lifetimefreshness-cdf.pdf'),
-                        bbox_inches='tight', dpi=300)
+        if self.output:
+            filename = PurePath(self.output).with_suffix('.pdf')
+            fig.savefig(filename, bbox_inches='tight', dpi=300)
             LOGGER.info(
-                f'Lifetimefreshness cdf saved to {os.path.join(DATA_DIR, f"{MONGO_DB_NAME}-lifetimefreshness-cdf.pdf")}')
+                f'Lifetimefreshness cdf saved to {f"{filename}"}')
         else:
             plt.show()
 
@@ -74,13 +74,12 @@ class LifetimeFreshnessCDF:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Plot interest lifetime cdf', prog='python -m tools.plots.lifetime_freshness')
-
-    parser.add_argument('--save-fig', default=False, action=argparse.BooleanOptionalAction,
-                        help='Save figure to file (default: False).')
+    parser.add_argument('-o', '--output', metavar='FILE',
+                        type=str, help='Save to file.')
     args = parser.parse_args()
 
     plot = LifetimeFreshnessCDF(
         DB, {'INTEREST': MONGO_COLLECTION_INTEREST, 'DATA': MONGO_COLLECTION_DATA})
 
-    plot.save_fig = args.save_fig
+    plot.output = args.output
     asyncio.run(plot.plot())

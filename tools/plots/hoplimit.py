@@ -1,10 +1,10 @@
-import os
 import asyncio
 import argparse
 from matplotlib import ticker
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
+from pathlib import PurePath
 from settings import *
 
 
@@ -14,33 +14,25 @@ class HopLimit:
     def __init__(self, db, collections):
         self.db = db
         self.collections = collections
-        self.save_fig = False
+        self.output = False
 
     async def plot(self):
         LOGGER.info('Getting packets....')
+        hoplimits = []
+        for _, collection in self.collections.items():
+            async for document in self.db[collection].find({}, {'hopLimit': 1, '_id': 0}):
+                if document.get('hopLimit'):
+                    # hoplimits.append(document.get('hopLimit', HopLimit.DEFAULT_HOPLIMIT))
+                    hoplimits.append(document.get('hopLimit'))
 
         counts = {}
-        # If csv exists, read from csv
-        if os.path.exists(os.path.join(DATA_DIR, f'{MONGO_DB_NAME}-hoplimit.csv')):
-            df = pd.read_csv(os.path.join(
-                DATA_DIR, f'{MONGO_DB_NAME}-hoplimit.csv'), index_col='hoplimit')
-            counts = df['count'].to_dict()
+        for hoplimit in hoplimits:
+            counts[hoplimit] = counts.get(hoplimit, 0) + 1
 
-        else:
-            hoplimits = []
-            for _, collection in self.collections.items():
-                async for document in self.db[collection].find({}, {'hopLimit': 1, '_id': 0}):
-                    if document.get('hopLimit'):
-                        # hoplimits.append(document.get('hopLimit', HopLimit.DEFAULT_HOPLIMIT))
-                        hoplimits.append(document.get('hopLimit'))
-
-            for hoplimit in hoplimits:
-                counts[hoplimit] = counts.get(hoplimit, 0) + 1
-
-            # Save to csv
-            df = pd.DataFrame.from_dict(counts, orient='index', columns=['count'])
-            df.index.name = 'hoplimit'
-            df.to_csv(os.path.join(DATA_DIR, f'{MONGO_DB_NAME}-hoplimit.csv'))
+        # Save to csv
+        df = pd.DataFrame.from_dict(counts, orient='index', columns=['count'])
+        df.index.name = 'hoplimit'
+        df.to_csv(f'{MONGO_DB_NAME}-hoplimit.csv')
 
         LOGGER.info('Plotting...')
         sns.set_context('paper', font_scale=2)
@@ -58,11 +50,11 @@ class HopLimit:
         ax.grid(axis='y')
         fig.tight_layout()
 
-        if self.save_fig:
-            fig.savefig(os.path.join(
-                DATA_DIR, f'{MONGO_DB_NAME}-hoplimit.pdf'), bbox_inches='tight', dpi=300)
+        if self.output:
+            filename = PurePath(self.output).with_suffix('.pdf')
+            fig.savefig(filename, bbox_inches='tight', dpi=300)
             LOGGER.info(
-                f'Hop limit saved to {os.path.join(DATA_DIR, f"{MONGO_DB_NAME}-hoplimit.pdf")}')
+                f'Hop limit saved to {f"{filename}"}')
         else:
             plt.show()
 
@@ -70,12 +62,11 @@ class HopLimit:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Plot hop limit CDF', prog='python -m tools.plots.hoplimit')
-
-    parser.add_argument('--save-fig', default=False, action=argparse.BooleanOptionalAction,
-                        help='Save figure to file (default: False).')
+    parser.add_argument('-o', '--output', metavar='FILE',
+                        type=str, help='Save to file.')
     args = parser.parse_args()
 
     plot = HopLimit(DB, {'INTEREST': MONGO_COLLECTION_INTEREST})
 
-    plot.save_fig = args.save_fig
+    plot.output = args.output
     asyncio.run(plot.plot())

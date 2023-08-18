@@ -1,4 +1,3 @@
-import os
 import asyncio
 import argparse
 from matplotlib import ticker
@@ -6,6 +5,7 @@ from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+from pathlib import PurePath
 from settings import *
 
 
@@ -13,7 +13,7 @@ class PacketsHistogramThroughput:
     def __init__(self, db, collections):
         self.db = db
         self.collections = collections
-        self.save_fig = False
+        self.output = False
 
     async def plot(self, duration):
         LOGGER.info('Getting the packets...')
@@ -106,11 +106,11 @@ class PacketsHistogramThroughput:
         ax2.spines['top'].set_visible(False)
         plt.tight_layout()
 
-        if self.save_fig:
-            fig.savefig(os.path.join(DATA_DIR, f'{MONGO_DB_NAME}-histogram-{duration}.pdf'),
-                        bbox_inches='tight')
+        if self.output:
+            filename = PurePath(self.output).with_suffix('.pdf')
+            fig.savefig(filename, bbox_inches='tight', dpi=300)
             LOGGER.info(
-                f'Histogram saved to {os.path.join(DATA_DIR, f"{MONGO_DB_NAME}-histogram-{duration}.pdf")}')
+                f'Histogram saved to {f"{filename}"}')
         else:
             plt.show()
 
@@ -121,12 +121,12 @@ if __name__ == '__main__':
 
     parser.add_argument('--duration', default=60, type=int,
                         help=f'Duration in minutes to group packets (default: 60)')
-    parser.add_argument('--save-fig', default=False, action=argparse.BooleanOptionalAction,
-                        help='Save figure to file (default: False).')
+    parser.add_argument('-o', '--output', metavar='FILE',
+                        type=str, help='Save to file.')
     args = parser.parse_args()
 
     plot = PacketsHistogramThroughput(
         DB, {'INTEREST': MONGO_COLLECTION_INTEREST, 'DATA': MONGO_COLLECTION_DATA, 'NACK': MONGO_COLLECTION_NACK, 'FRAGMENT': MONGO_COLLECTION_FRAGMENT})
 
-    plot.save_fig = args.save_fig
+    plot.output = args.output
     asyncio.run(plot.plot(args.duration))

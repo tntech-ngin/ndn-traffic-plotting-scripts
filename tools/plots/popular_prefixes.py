@@ -1,10 +1,10 @@
-import os
 import asyncio
 import argparse
 import matplotlib.pyplot as plt
 from collections import Counter
 from ndn.encoding import Name
 import seaborn as sns
+from pathlib import PurePath
 from settings import *
 
 
@@ -12,7 +12,7 @@ class PopularPrefixes:
     def __init__(self, db, collections):
         self.db = db
         self.collections = collections
-        self.save_fig = False
+        self.output = False
 
     async def plot(self):
         LOGGER.info('Getting the packets...')
@@ -105,11 +105,11 @@ class PopularPrefixes:
         ax[1].yaxis.set_ticks_position('none')
         fig.tight_layout()
 
-        if self.save_fig:
-            fig.savefig(os.path.join(
-                DATA_DIR, f'{MONGO_DB_NAME}-popular_prefixes.pdf'), bbox_inches='tight', dpi=300)
+        if self.output:
+            filename = PurePath(self.output).with_suffix('.pdf')
+            fig.savefig(filename, bbox_inches='tight', dpi=300)
             LOGGER.info(
-                f'Popular prefixes saved to {os.path.join(DATA_DIR, f"{MONGO_DB_NAME}-popular_prefixes.pdf")}')
+                f'Popular prefixes saved to {f"{filename}"}')
         else:
             plt.show()
 
@@ -117,13 +117,12 @@ class PopularPrefixes:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Plot NDN packet statistics.', prog='python -m tools.plots.popular_prefixes')
-
-    parser.add_argument('--save-fig', default=False, action=argparse.BooleanOptionalAction,
-                        help='Save figure to file (default: False).')
+    parser.add_argument('-o', '--output', metavar='FILE',
+                        type=str, help='Save to file.')
     args = parser.parse_args()
 
     plot = PopularPrefixes(
         DB, {'INTEREST': MONGO_COLLECTION_INTEREST, 'DATA': MONGO_COLLECTION_DATA})
 
-    plot.save_fig = args.save_fig
+    plot.output = args.output
     asyncio.run(plot.plot())

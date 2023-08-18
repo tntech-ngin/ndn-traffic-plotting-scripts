@@ -1,11 +1,11 @@
 import asyncio
-import os
 import argparse
 from matplotlib import ticker
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+from pathlib import PurePath
 from settings import *
 
 # may 31
@@ -30,7 +30,7 @@ class GridPacketsHistogramThroughput:
         self.db = db
         self.name = name
         self.collections = collections
-        self.save_fig = False
+        self.output = False
 
     async def plot(self, duration, ax1, ax2):
         LOGGER.info(f'Getting the packets...')
@@ -126,11 +126,10 @@ class GridPacketsHistogramThroughput:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Plot grid histogram throughput', prog='python -m tools.plots.grid_throughput')
-
     parser.add_argument('--duration', default=60, type=int,
                         help=f'Duration in minutes to group packets (default: 60)')
-    parser.add_argument('--save-fig', default=False, action=argparse.BooleanOptionalAction,
-                        help='Save figure to file (default: False).')
+    parser.add_argument('-o', '--output', metavar='FILE',
+                        type=str, help='Save to file.')
     args = parser.parse_args()
 
     sns.set_context('paper', font_scale=1.5)
@@ -160,11 +159,11 @@ if __name__ == '__main__':
         fig.supxlabel('Timestamp [UTC]')
         plt.tight_layout()
 
-        if args.save_fig:
-            plt.savefig(os.path.join(DATA_DIR, f"Grid-throughput-{args.duration}.pdf"),
-                        bbox_inches='tight', dpi=300)
+        if args.output:
+            filename = PurePath(args.output).with_suffix('.pdf')
+            plt.savefig(filename, bbox_inches='tight', dpi=300)
             LOGGER.info(
-                f"Combined grid histogram throughput saved to {os.path.join(DATA_DIR, f'Grid-throughput-{args.duration}.pdf')}")
+                f"Combined grid histogram throughput saved to {f'{filename}'}")
         else:
             plt.show()
 
