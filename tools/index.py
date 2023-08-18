@@ -1,10 +1,18 @@
-import os
+import argparse
 import asyncio
 import json
-import argparse
+import os
+
 from tqdm import tqdm
-from settings import DB, MONGO_COLLECTION_INTEREST, MONGO_COLLECTION_DATA, \
-    MONGO_COLLECTION_NACK, MONGO_COLLECTION_FRAGMENT, LOGGER
+
+from settings import (
+    DB,
+    LOGGER,
+    MONGO_COLLECTION_DATA,
+    MONGO_COLLECTION_FRAGMENT,
+    MONGO_COLLECTION_INTEREST,
+    MONGO_COLLECTION_NACK,
+)
 
 
 class Indexer:
@@ -27,20 +35,20 @@ class Indexer:
             self.bulk_data[type] = []
 
     def packets_generator(self, file_path):
-        with open(file_path, 'r') as file:
+        with open(file_path) as file:
             for line in file:
                 yield json.loads(line)
 
     async def index_json(self, file_path):
-        progress_bar = tqdm(desc='Indexing packets', unit=' packet')
+        progress_bar = tqdm(desc="Indexing packets", unit=" packet")
 
         for packet in self.packets_generator(file_path):
-            packet_type = packet['t']
-            if 'I' in packet_type:
+            packet_type = packet["t"]
+            if "I" in packet_type:
                 await self._index_packet(MONGO_COLLECTION_INTEREST, packet)
-            elif 'D' in packet_type:
+            elif "D" in packet_type:
                 await self._index_packet(MONGO_COLLECTION_DATA, packet)
-            elif 'N' in packet_type:
+            elif "N" in packet_type:
                 await self._index_packet(MONGO_COLLECTION_NACK, packet)
             else:
                 await self._index_packet(MONGO_COLLECTION_FRAGMENT, packet)
@@ -52,12 +60,13 @@ class Indexer:
             if data:
                 await self.db[collection].insert_many(data)
 
-        LOGGER.info('Done.')
+        LOGGER.info("Done.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Index JSON file into MongoDB.", prog='python -m tools.index')
+        description="Index JSON file into MongoDB.", prog="python -m tools.index"
+    )
     parser.add_argument("file_path", help="Path to JSON file.")
     args = parser.parse_args()
 

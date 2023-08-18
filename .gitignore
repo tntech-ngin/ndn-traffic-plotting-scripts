@@ -10,3 +10,4 @@ data/*
 .vscode
 *.txt
 !requirements.txt
+.ruff_cache
