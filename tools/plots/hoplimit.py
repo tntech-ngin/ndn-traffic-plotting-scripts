@@ -3,6 +3,7 @@ import asyncio
 from pathlib import PurePath
 
 import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
 from matplotlib import ticker
 
@@ -30,14 +31,22 @@ class HopLimit:
             counts[hoplimit] = counts.get(hoplimit, 0) + 1
 
         LOGGER.info("Plotting...")
-        sns.set_context("paper", font_scale=2)
+        sns.set_context("paper", font_scale=3)
         fig, ax = plt.subplots(figsize=(14, 8))
         ax.bar(counts.keys(), counts.values())
         ax.set_xlabel("Hop Limit")
         ax.set_ylabel("Count")
         ax.set_xlim(-5, 260)  # Margins of 5
         ax.set_ylim(bottom=0)
-        ax.set_yscale("symlog")
+        ax.set_yscale("asinh")
+
+        # Custom: This was added to add one more tick to the y-axis in the power of 10 and should
+        # not be present for general plots
+        max_count = max(counts.values())
+        next_power_of_10 = 10 ** (int(np.log10(max_count)) + 1)
+        ax.set_ylim(top=next_power_of_10)
+        # Custom: End
+
         ax.xaxis.set_major_locator(ticker.MultipleLocator(25))
         ax.xaxis.set_minor_locator(ticker.MultipleLocator(12.5))
         ax.tick_params(axis="both", which="major")

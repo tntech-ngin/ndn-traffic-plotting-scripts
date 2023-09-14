@@ -48,88 +48,80 @@ class PopularPrefixes:
         }
 
         LOGGER.info("Plotting...")
-        sns.set_context("paper", font_scale=2)
+        sns.set_context("paper", font_scale=2.5)
         fig, ax = plt.subplots(2, 1, figsize=(16, 14))
         ax[0].set_ylabel("Interests")
         ax[1].set_ylabel("Data")
         ax[1].set_xlabel("Count")
         ax[0].set_xscale("log")
         ax[1].set_xscale("log")
-        bar_width = 10
-        colors = ["#66b3ff", "#99ff99", "#ff9999", "#ffcc99", "#c2c2f0"]
-        colors = ["#FF6347", "#B22222", "#008080", "#4682B4", "#BA55D3"]
+        colors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd"]
+
+        y_ticks_interests = []
+        y_ticks_labels_interests = []
+        y_ticks_data = []
+        y_ticks_labels_data = []
 
         # Plot top 5 prefixes with counts only up to the 5th level
-        for level in range(5, 0, -1):
+        for level in range(1, 6):
             interests_prefixes = top_prefixes_interests_per_level.get(level, [])
             data_prefixes = top_prefixes_data_per_level.get(level, [])
-            offset = (5 - level) * 40
             color = colors[level - 1]
+            bar_start = (5 - level) * 10
 
             for i, (prefix, count) in enumerate(reversed(interests_prefixes)):
-                bar = ax[0].barh(
-                    i * 13 + offset,
+                y_pos = i * 3 + bar_start
+                ax[0].barh(
+                    y_pos,
                     count,
-                    height=bar_width,
-                    alpha=0.2,
+                    1.5,
+                    alpha=0.4,
                     edgecolor="black",
                     color=color,
-                    label=f"Level {level}" if i == 0 else None,
                 )
 
                 prefix = Name.to_str(Name.from_str(prefix))
-                x_position = bar[0].get_bbox().x1
-                ax[0].text(
-                    x_position,
-                    i * 12 + offset,
-                    prefix,
-                    ha="left",
-                    va="center",
-                    rotation=0,
-                    fontdict={"style": "italic", "color": "black"},
-                )
+                y_ticks_interests.append(y_pos)
+                y_ticks_labels_interests.append(prefix)
 
             for i, (prefix, count) in enumerate(reversed(data_prefixes)):
-                bar = ax[1].barh(
-                    i * 12 + offset,
+                y_pos = i * 3 + bar_start
+                ax[1].barh(
+                    y_pos,
                     count,
-                    height=bar_width,
-                    alpha=0.2,
+                    1.5,
+                    alpha=0.4,
                     edgecolor="black",
                     color=color,
-                    label=f"Level {level}" if i == 0 else None,
                 )
 
                 prefix = Name.to_str(Name.from_str(prefix))
-                x_position = bar[0].get_bbox().x1
-                ax[1].text(
-                    x_position,
-                    i * 13 + offset,
-                    prefix,
-                    ha="left",
-                    va="center",
-                    rotation=0,
-                    fontdict={"style": "italic", "color": "black"},
-                )
+                y_ticks_data.append(y_pos)
+                y_ticks_labels_data.append(prefix)
 
         x_min = min(ax[0].get_xlim()[0], ax[1].get_xlim()[0])
         x_max = max(ax[0].get_xlim()[1], ax[1].get_xlim()[1])
         ax[0].set_xlim(x_min, x_max)
         ax[1].set_xlim(x_min, x_max)
-        ax[0].set_yticks([172, 132, 92, 52, 12])
-        ax[1].set_yticks([172, 132, 92, 52, 12])
-        ax[0].set_ylim(-10)
-        ax[1].set_ylim(-10)
-        ax[0].spines["right"].set_visible(False)
-        ax[0].spines["top"].set_visible(False)
-        ax[1].spines["right"].set_visible(False)
-        ax[1].spines["top"].set_visible(False)
-        ax[0].set_yticklabels(["L1", "L2", "L3", "L4", "L5"])
-        ax[1].set_yticklabels(["L1", "L2", "L3", "L4", "L5"])
-        ax[0].tick_params(axis="both", which="major")
-        ax[1].tick_params(axis="both", which="major")
+
+        ax[0].set_yticks(y_ticks_interests)
+        ax[0].set_yticklabels(y_ticks_labels_interests)
+        ax[1].set_yticks(y_ticks_data)
+        ax[1].set_yticklabels(y_ticks_labels_data)
+
+        ax[0].yaxis.set_label_position("right")
+        ax[1].yaxis.set_label_position("right")
         ax[0].yaxis.set_ticks_position("none")
         ax[1].yaxis.set_ticks_position("none")
+
+        ax[0].grid(axis="x", color="grey", linestyle="-.", linewidth=0.5, alpha=0.7)
+        ax[1].grid(axis="x", color="grey", linestyle="-.", linewidth=0.5, alpha=0.7)
+
+        # Create custom legend entries
+        lines = [plt.Line2D([0], [0], color=c, linewidth=3, linestyle="-") for c in colors]
+        labels = ["L1", "L2", "L3", "L4", "L5"]
+        fig.legend(lines, labels, loc="upper left", bbox_to_anchor=(0, 1))
+
         fig.tight_layout()
 
         if self.output:

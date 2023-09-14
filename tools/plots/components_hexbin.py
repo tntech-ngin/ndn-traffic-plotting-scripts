@@ -86,12 +86,16 @@ class ComponentsHexbin:
         cb2.set_label("Data Frequency")
 
         ax.set_xlabel("Number of Components")
-        ax.set_ylabel("Name Length [Bytes]")
+        ax.set_ylabel("Name Length (Bytes)")
 
         ax.grid(axis="y")
         ax.tick_params(axis="both", which="major")
-        ax.set_ylim(bottom=0)
-        ax.yaxis.set_ticks(np.arange(0, ax.get_ylim()[1], 50))
+
+        # Custom: This code was added to define explicit x and y limits and should not be used
+        ax.set_xlim(left=0, right=14)
+        ax.set_ylim(bottom=0, top=800)
+        ax.yaxis.set_ticks(np.arange(0, 801, 50))
+        # Custom: End
 
         if self.output:
             filename = PurePath(self.output).with_suffix(".pdf")

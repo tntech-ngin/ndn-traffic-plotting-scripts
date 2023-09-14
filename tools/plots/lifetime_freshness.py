@@ -45,22 +45,37 @@ class LifetimeFreshnessCDF:
         )
 
         LOGGER.info("Plotting...")
-        sns.set_context("paper", font_scale=2)
+        sns.set_context("paper", font_scale=3)
         fig, ax = plt.subplots(figsize=(14, 8))
-        ax.plot(interest_lifetime_values, interest_lifetime_cdf, label="Interest lifetime")
+        ax.plot(
+            interest_lifetime_values,
+            interest_lifetime_cdf,
+            label="Interest lifetime",
+            linewidth=3,
+        )
         ax.plot(
             data_freshness_values,
             data_freshness_cdf,
             label="Freshness period",
             color="r",
+            linewidth=3,
         )
-        ax.set_xlim(0.5, 1e8)
+
+        # Custom: This was added to show vertical lines at every power of 10 until 10^8 and
+        # should not be present for general plots
+        for i in range(1, 9):
+            ax.axvline(10**i, color="k", linewidth=0.1, alpha=0.3)
+            ax.grid(True, axis="y", linewidth=0.2, alpha=0.5)
+        # Custom: End
+
+        ax.set_xlim(1, 1e8)
         ax.set_ylim(0, 1)
         ax.set_xscale("log")
-        ax.set_xlabel("Lifetime / Freshness period [ms]")
+        ax.set_xlabel("Milliseconds")
         ax.set_ylabel("CDF")
-        ax.grid(True)
-        ax.legend(loc="upper left")
+        # Uncomment for generic case
+        # ax.grid(True)
+        ax.legend(loc="upper left", fontsize="small")
         ax.xaxis.set_minor_locator(ticker.LogLocator(base=10, subs=np.arange(1, 10.0), numticks=10))
         # ax.set_yticks(np.linspace(0, 1, num=11))
         ax.yaxis.set_minor_locator(plt.MultipleLocator(0.1))

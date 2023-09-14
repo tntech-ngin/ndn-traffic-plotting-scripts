@@ -11,20 +11,24 @@ from matplotlib import ticker
 from settings import *
 
 # may 31
-DBS = [
-    "suns-cs-ucla-edu-2023-06-01T05:00:02Z",
-    "wundngw-2023-06-01T05:00:20Z",
-    "hobo-2023-06-01T05:00:03Z",
-    "titan-2023-06-01T05:00:37Z",
-]
+# DBS = [
+#     "suns-cs-ucla-edu-2023-06-01T05:00:02Z",
+#     "wundngw-2023-06-01T05:00:20Z",
+#     "hobo-2023-06-01T05:00:03Z",
+#     "titan-2023-06-01T05:00:37Z",
+# ]
 
 # jun 3
 # DBS = ['suns-cs-ucla-edu-2023-06-04T05:00:03Z', 'wundngw-2023-06-04T05:00:20Z',
 #                  'hobo-2023-06-04T05:00:03Z', 'titan-2023-06-04T05:00:37Z']
 
 # jun 1
-# DBS = ['suns-cs-ucla-edu-2023-06-06T05:00:04Z', 'wundngw-2023-06-06T05:00:13Z',
-#  'hobo-2023-06-06T05:00:03Z', 'titan-2023-06-06T05:00:37Z']
+DBS = [
+    "suns-cs-ucla-edu-2023-06-06T05:00:04Z",
+    "wundngw-2023-06-06T05:00:13Z",
+    "hobo-2023-06-06T05:00:03Z",
+    "titan-2023-06-06T05:00:37Z",
+]
 
 # # jun 9
 # DBS = ['suns-cs-ucla-edu-2023-06-09T05:00:02Z', 'wundngw-2023-06-09T05:00:11Z',
@@ -120,20 +124,20 @@ class GridPacketsHistogramThroughput:
         )
         ax1.xaxis.set_major_formatter(xformatter)
         ax1.yaxis.set_major_formatter(ticker.ScalarFormatter())
+        title = None
+        if "suns" in self.name:
+            title = "UCLA"
+        elif "wundngw" in self.name:
+            title = "WU"
+        elif "hobo" in self.name:
+            title = "ARIZONA"
+        elif "titan" in self.name:
+            title = "MEMPHIS"
+        ax1.set_title(title)
 
         # Second plot
         ax2.plot(np.arange(num_durations), throughput, color="r", linestyle="-")
         ax2.xaxis.set_major_formatter(xformatter)
-        label = None
-        if "suns" in self.name:
-            label = "UCLA"
-        elif "wundngw" in self.name:
-            label = "WU"
-        elif "hobo" in self.name:
-            label = "ARIZONA"
-        elif "titan" in self.name:
-            label = "MEMPHIS"
-        ax2.set_xlabel(label, labelpad=10)
 
         ax1.spines["right"].set_visible(False)
         ax1.spines["top"].set_visible(False)
@@ -182,11 +186,35 @@ if __name__ == "__main__":
         # Create a common legend for all subplots
         handles, labels = axs[0, 0].get_legend_handles_labels()
         fig.legend(handles, labels, loc="upper right")
-        axs[0, 0].set_ylabel("Packets/min [x10^3]")
+        axs[0, 0].set_ylabel(r"Packets/min (x$10^3$)")
+
+        # Custom: This was added to display y-ticks at every 10 units for packets/min plot and
+        # should not be present for general plots
+        y_ticks_interval_packets = 10
+        max_y_value_packets = max([ax.get_ylim()[1] for ax in axs[0]])
+        axs[0, 0].set_yticks(
+            np.arange(0, max_y_value_packets + y_ticks_interval_packets, y_ticks_interval_packets)
+        )
+        # Custom: End
+
+        # Custom: This was added to display y-ticks at every 10 units for mbps plot and
+        # should not be present for general plots
+        y_ticks_interval_mbps = 10
+        max_y_value_mbps = max([ax.get_ylim()[1] for ax in axs[1]])
+        axs[1, 0].set_yticks(
+            np.arange(0, max_y_value_mbps + y_ticks_interval_mbps, y_ticks_interval_mbps)
+        )
+        # Custom: End
+
         axs[1, 0].set_ylabel("Mbps")
         for ax in axs.flat:
             ax.set_ylim(bottom=0)
-        fig.supxlabel("Timestamp [UTC]")
+            # Custom: This was added to display x-ticks at exact hour intervals and
+            # should not be present for general plots
+            ax.xaxis.set_major_locator(ticker.MultipleLocator(60 // args.duration))
+            # Custom: End
+
+        fig.supxlabel("Timestamp (UTC)")
         plt.tight_layout()
 
         if args.output:
