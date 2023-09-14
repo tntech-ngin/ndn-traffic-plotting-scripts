@@ -1,0 +1,29 @@
+cff-version: 0.0.1
+title: ndn-packet-view
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Sankalpa
+    family-names: Timilsina
+    email: stimilsin43@tntech.edu
+    affiliation: Tennessee Technological University
+  - given-names: Davide
+    family-names: Pesavento
+    email: davide.pesavento@nist.gov
+    affiliation: NIST
+  - given-names: Junxiao
+    family-names: Shi
+    email: junxiao.shi@nist.gov
+    affiliation: NIST
+  - given-names: Susmit
+    family-names: Shannigrahi
+    email: sshannigrahi@tntech.edu
+    affiliation: Tennessee Technological University
+  - given-names: Lotfi
+    family-names: Benmohamed
+    email: lotfi.benmohamed@nist.gov
+    affiliation: NIST
+repository-code: 'https://github.com/tntech-ngin/capture-systemd'
+license: Apache-2.0
