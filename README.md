@@ -49,3 +49,21 @@ python -m tools.index <file_path>
 python -m tools.plots.<script_name>
 ```
 
+# Linters and Formatters
+The project uses git pre-commit hooks to run linters and formatters. To enable the pre-commit hooks, run the following command:
+```bash
+pre-commit install
+```
+
+## Troubleshooting
+If the commit reports conflicts with the unstaged changes, run the pre-commit hooks manually and commit again:
+```bash
+pre-commit run --all-files
+```
+or use `--no-verify` flag to skip the pre-commit verification:
+```bash
+git commit --no-verify -m <message>
+```
+
+
+
