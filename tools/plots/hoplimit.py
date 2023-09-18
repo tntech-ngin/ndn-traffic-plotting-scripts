@@ -2,12 +2,17 @@ import argparse
 import asyncio
 from pathlib import PurePath
 
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from matplotlib import ticker
 
 from settings import *
+
+# For embedded fonts
+matplotlib.rcParams["pdf.fonttype"] = 42
+matplotlib.rcParams["ps.fonttype"] = 42
 
 
 class HopLimit:
