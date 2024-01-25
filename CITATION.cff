@@ -1,29 +1,34 @@
-cff-version: 0.0.1
-title: ndn-packet-view
-message: >-
-  If you use this software, please cite it using the
-  metadata from this file.
-type: software
-authors:
-  - given-names: Sankalpa
-    family-names: Timilsina
-    email: stimilsin43@tntech.edu
-    affiliation: Tennessee Technological University
-  - given-names: Davide
-    family-names: Pesavento
-    email: davide.pesavento@nist.gov
-    affiliation: NIST
-  - given-names: Junxiao
-    family-names: Shi
-    email: junxiao.shi@nist.gov
-    affiliation: NIST
-  - given-names: Susmit
-    family-names: Shannigrahi
-    email: sshannigrahi@tntech.edu
-    affiliation: Tennessee Technological University
-  - given-names: Lotfi
-    family-names: Benmohamed
-    email: lotfi.benmohamed@nist.gov
-    affiliation: NIST
-repository-code: 'https://github.com/tntech-ngin/capture-systemd'
-license: Apache-2.0
+cff-version: 1.2.0
+message: "Please consider citing from preferred-citation below instead of citing the GitHub repository."
+title: "NDN Traffic Plotting Scripts"
+url: "https://github.com/tntech-ngin/ndn-traffic-plotting-scripts"
+preferred-citation:
+  type: conference-paper
+  authors:
+    - family-names: "Timilsina"
+      given-names: "Sankalpa"
+      orcid: "https://orcid.org/0009-0009-3936-5078"
+    - family-names: "Pesavento"
+      given-names: "Davide"
+      orcid: "https://orcid.org/0000-0002-7136-1888"
+    - family-names: "Shi"
+      given-names: "Junxiao"
+      orcid: "https://orcid.org/0000-0003-3138-0790"
+    - family-names: "Shannigrahi"
+      given-names: "Susmit"
+      orcid: "https://orcid.org/0000-0001-6213-7473"
+    - family-names: "Benmohamed"
+      given-names: "Lotfi"
+      orcid: "https://orcid.org/0009-0003-4857-7351"
+  doi: "10.1145/3623565.3623707"
+  start: 101
+  end: 108
+  pages: 8
+  title: "Capture and Analysis of Traffic Traces on a Wide-Area NDN Testbed"
+  collection-title: "Proceedings of the 10th ACM Conference on Information-Centric Networking"
+  conference:
+    name: "ACM ICN 2023"
+    date-start: 2023-10-08
+    date-end: 2023-10-10
+  year: 2023
+  month: 10
